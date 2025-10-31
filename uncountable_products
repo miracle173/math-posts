@@ -1,0 +1,14 @@
+Ich verstehe, was du meinst. Das ist ein Beweis, mit dem man zeigen kann, dass in allen endlichen Körpern das Produkt aller Element ungleich 0 gleich -1 ist, und aus dem der Satz von Wilson(https://de.wikipedia.org/wiki/Satz_von_Wilson) folgt,der besagt, dass p genau dann eine Primzahl ist, wenn 
+p|((p-1)!+1)
+Bei endlichen Körpern funktioniert es, da das Produkt aller Elemente des Körpers ein Produkt einer endlichen Anzahl von Elementen ist.  Hier haben wir es aber mit dem Produkt einer überabzählbaren Anzahl von Zahlen zu tun, und du hast noch nirgends definiert, wie das Produkt eigentlich definiert ist. Das endliche Produkt von Zahlen wurde auf unendliche Folgen von Zahlen (konvergentes unendliches Produkt) und abzählbar unendliche Mengen von Zahlen (absolut konvergentes unendliches Produkt) erweitert. Doch diese Eweiterungen sind nicht für überabzählbare Mengen anwendbar. Du scheinst das Proukt überabzählbarer Mengen folgendermaßen zu definieren.
+Das überabzählbareProdukt der Zahl 1 ist 1. Gelingt es nun die Menge in eine eventuel überabzälbare Mengen endliche Mengen zu zerlegen, 
+
+Du machst folgendes: 
+Definieren wir  A(x):={x,1/x}
+1. du zerlegst die Menge R\{0} in endliche Teilmengen, nämlich
+ A(x) für  |x|>1} 
+ und
+ {1, -1}}
+ das Produkt der Elemente der Menge A(x) ist x*1/x=1, und du setzt das Produkt das aus überabzählbaren Fatoren 1 besteht, gleich 1,
+Produkt(x für x in R\{0}) = Produkt( Produkt(y für y in {x,1/x}) für |x|>1) * Produkt( y für y in {1, -1}) = Produkt( 1 für |x|>1)*(1 * (-1)) =1 *(-1) -1
+ 
