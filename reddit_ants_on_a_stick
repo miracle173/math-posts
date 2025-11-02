@@ -1,7 +1,7 @@
-Hiwer noch einmal die Argumentation, warum man
-Betrachten wir das Zeit-Weg-Diagramm zweier Käfem die zusammenstoßen, dann sind das zwei geknickte Geradem deren Knickstellen übereinstimmen. Der Anstieg der Geradenstücke die nach unten Zeigen ist gleich dem negativen Wert des Anstieges der Geradenstücke die nach oben zeigem
+Hier noch einmal die Argumentation, warum man
+Betrachten wir das Zeit-Weg-Diagramm zweier Käfem die zusammenstoßen, dann sind das zwei geknickte Geradem deren Knickstellen übereinstimmen. Der Anstieg der Geradenstücke die nach unten zeigen ist gleich dem negativen Wert des Anstieges der Geradenstücke die nach oben zeigen.
 
-      s
+    Weg
       ^
     8m+           1
       |          1
@@ -16,11 +16,12 @@ Betrachten wir das Zeit-Weg-Diagramm zweier Käfem die zusammenstoßen, dann sin
       | 2     2
       |2       2
       2         2
-    0m+----------2-+> t
+    0m+----------2-+> Zeit
       0 min        4 min
     
-Das Zeit-Weg-Diagramm zweier Käfer, die sich bei einem Zusammenstoß durchdringen, schaut ähnlich ausWenn uns die Identität der Käfer egal ist, also wenn es egal ist, welcher Käfer zu einer bestimmten Zeit an einem bestimmten Ort ist, dann kann man annehmen, dass jeder Käfer bei einer Begegnung zweier Käfer mit unveränderter Geschwindigkeit in die urspüngliche Richtung weiter läuft.
-      s
+Das Zeit-Weg-Diagramm zweier Käfer, die sich bei einem Zusammenstoß durchdringen bzw. aneinander vorbeikrabbeln, schaut ähnlich aus. 
+
+    Weg
       ^
     8m+           2
       |          2
@@ -35,114 +36,21 @@ Das Zeit-Weg-Diagramm zweier Käfer, die sich bei einem Zusammenstoß durchdring
       | 2     1
       |2       1
       2         1
-    0m+----------1-+> t
-      0 min        4 min
-      
-Frage 1) was ist die kürzeste Zeit, nach der wir sicher sein können, dass alle Käfer vom Seil gefallen sind?
-Hier ist es eben egal, wenn die Käfer die Idendität wechseln, wir können also annehmen, dass ein Käfer durch einen anderen durchäuft und sich auf Geraden bewegen, deshalb werden spätestens nach 4 Minuten alle Käfer vom Seil gefallen sein. Wenn ein Käfer von einem Ende zum anderen krabbeln muss, dann braucht er auch genau 4 Minuten. 
-
-Frage 2) Wieviel Zusammenstöße sind höchsten möglich, bis alle Käfer vom Seil gefallen sind?
-Hier ist die Identität der Käfer wieder egal und wir können wiederum annehmen, dass sie sich nach einem Zusammenstoß unverändert weiter bewegen. Wir suchen eine Startkonfiguration, bei der die Anzahl der Zusammenstöße maximal ist. Gibt es einen Käfer, der nach links läuft und dessen nächster rechter Nachbar nach recht käuft, dann werden diese beiden Käfer nie zusammenstoßen. Vertauscht man ihre Startpositionen, dann werden sie zusammenstoßen und die Anzahl der Begegnungen der nezen Startkonfiguration ist um 1 größer als die der ursprümglichen Konfiguration. Diesen Prozess des Vertauschens kann ich wiederholen, bis alle Käfer, die sich nach rechts bewegen, links von allen Käfern sind, die sich nach links bewegen. Hanen wir n Käfer, von denen sich k nach links bewegen und deshalb n-k, die sich nach rechts bewegen, dann sind das (n-k)*k Begegnungen. Für festes n ist das Maximum [n^2/4]. Für n=^8 ist das 81.
-
-Frage 3) Was ist die größte Anzahl von Zusammenstößen, die ein Käfer haben kann?
-Wählen wir eine Käfer aus und versuchen wir die Anzahl seiner Zusammenstöße mit anderen Käfern zu ermitteln. Begegenen sich zwei andere Käfer, kännen wir davon ausgehen, dass sie bei Begegnungen ihren Weg fortsetzen.  Nur wenn der ausgewählte Käfer einem anderen Käfer begegnet, wechseln beide Käfer die Richtung, da es hier auf die Identität der Käfer ankommt. Wenn der ausgewählte Käfer und eine andere Käfer sich in die selbe Richtung Bewegen und der ausgewählte K-fer hinter dem Käfer ist, werden sie sichnie begegnen. Wenn der Ausgewäjlte Käfer mit einem anderen Käfer zusammenstößt, werden sie sich danach nicht mehr begegenen, 
-2*min(z,w+1)
-
-
-
-      
-      
-      
-      
-      
-      
-      s
-      ^       
-    8m+               1
-      |             1
-      1           1
-      | 1       1
-      |   1   1 
-      |     *  
-      |    2 2        
-      |   2   2
-      |  2     2
-      | 2       2
-      |2         2
-      2           2
-    0m+------------2--+> t
-      0 min         4 min
-
-             
-
-      s
-      ^       
-    8m+               2
-      |             2
-      1           2
-      | 1       2
-      |   1   2 
-      |     *  
-      |    2 1        
-      |   2   1
-      |  2     1
-      | 2       1
-      |2         1
-      2           1
-    0m+------------1--+> t
-      0 min         4 min
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    
-      s
-      ^
-    8m+           1
-      |          1
-      1         1
-      |1       1
-      | 1     1
-      |  1   1
-      |   1 1
-      |    * 
-      |   2 2
-      |  2   2
-      | 2     2
-      |2       2
-      2         2
-    0m+----------2-+> t
+    0m+----------1-+> Zeit
       0 min        4 min
     
+Wenn uns die Identität der Käfer egal ist, also wenn es egal ist, welcher Käfer zu einer bestimmten Zeit an einem bestimmten Ort ist, dann kann man annehmen, dass jeder Käfer bei einer Begegnung zweier Käfer mit unveränderter Geschwindigkeit in die urspüngliche Richtung weiter läuft.
     
-      s
-      ^
-    8m+           2
-      |          2
-      1         2
-      |1       2
-      | 1     2
-      |  1   2
-      |   1 2
-      |    * 
-      |   2 1
-      |  2   1
-      | 2     1
-      |2       1
-      2         1
-    0m+----------1-+> t
-      0 min        4 min
+Frage 1: wWas ist die kürzeste Zeit, nach der wir sicher sein können, dass alle Käfer vom Seil gefallen sind?
+
+Hier ist es eben egal, wenn die Käfer die Idendität wechseln, wir können also annehmen, dass die Käfer aneinander vorbie laufen und sich auf nicht gelnickten Geraden bewegen. Deshalb werden spätestens nach 4 Minuten alle Käfer vom Seil gefallen sein. Wenn ein Käfer von einem Ende zum anderen krabbeln muss, dann braucht er auch genau 4 Minuten. 
+
+Frage 2: Wieviel Zusammenstöße sind höchsten möglich, bis alle Käfer vom Seil gefallen sind?
+
+Hier ist die Identität der Käfer wieder egal und wir können wiederum annehmen, dass die Käfer aneinander vorbie laufen. Wir suchen eine Startkonfiguration, bei der die Anzahl der Zusammenstöße maximal ist. Gibt es einen Käfer, der nach links läuft und dessen nächster rechter Nachbar nach recht käuft, dann werden diese beiden Käfer nie zusammenstoßen. Vertauscht man ihre Startpositionen, dann werden sie zusammenstoßen und die Anzahl der Begegnungen der neuen Startkonfiguration ist um 1 größer als die der ursprünglichen Konfiguration. Diesen Prozess des Vertauschens kann ich wiederholen, bis alle Käfer, die sich nach rechts bewegen, links von allen Käfern sind, die sich nach links bewegen. Haben wir n Käfer, von denen sich k nach links bewegen und deshalb n-k, die sich nach rechts bewegen, dann sind das (n-k)*k Begegnungen. Für festes n ist das Maximum [n^2/4]. Für n=18 ist das also 81.
+
+Frage 3: Was ist die größte Anzahl von Zusammenstößen, die ein Käfer haben kann?
+
+Wählen wir eine Käfer aus und versuchen wir die Anzahl seiner Zusammenstöße mit anderen Käfern zu ermitteln. Begegenen sich zwei andere Käfer, können wir davon ausgehen, dass sie bei Begegnungen ihren Weg fortsetzen.  Nur wenn der ausgewählte Käfer einem anderen Käfer begegnet, wechseln beide Käfer die Richtung, da es hier auf die Identität der Käfer ankommt. Wenn der ausgewählte Käfer und eine andere Käfer sich in die selbe Richtung bewegen und der ausgewählte Käfer hinter dem Käfer ist, werden sie sich nie begegnen. Wenn der Ausgewählte Käfer mit einem anderen Käfer zusammenstößt, wechseln beide die Richtung und sie werden sich danach nicht mehr begegenen. Wenn der ausgewählte Käfer nach rechts startet, berührt er zuerst einen Käfer, der rechts von ihm ist, und nach links läuft, nach diesem Zusammenstoß kann dieser Käfer ignoriert werden und fällt irgendwann vom Seil.  und der ausgewählte Käfer läuft nach links bis er vom Seil fällt oder wiederum auf einen entgegenkommenden Käfer trifft. Im letzten Fall wiederholt sich das vorher beschriebene. Der ausgewählte Käfer stößt also abwechselnd mit Käfern rechts und links von ihm zusammen und keinen dieser  Käfer begegnet er nachher wieder. Wenn n Käfer insgesamt vorhanden sind, kann er also mit höchstens n-1 Käfer zusammenstoßen. Er kann diese maximale Anzahl von Zusammenstößen auch erreichen, wenn, falls n-1 gerade ist, rechts und links  von ihm die gleiche Anzhal von Käfer ist, oder, falls n-1 ungerade ist, rechts n/2 und links n/2-1 käfer sind,
+
+
