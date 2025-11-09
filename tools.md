@@ -1,4 +1,4 @@
-# Formeln erzeugen in ASCII
+# Formeln erzeugen in Unicode
 
 Unicode 
 
