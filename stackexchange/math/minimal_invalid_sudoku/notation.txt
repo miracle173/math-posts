@@ -1,0 +1,43 @@
+# Notation
+
+## Locations
+    Box     B(i,j)      i = 0..2, j = 0..2
+    box     b(i,j;k,n)  i = 0..2, j = 0..2, k = 0..2, l = 0..2
+            b(i,j,k,n)  i = 0..2, j = 0..2, k = 0..2, l = 0..2
+            b(i; j)     i = 0..8, j = 0..8
+            b(i, j)     i = 0..8, j = 0..8
+            b(i,j;k)    i = 0..2, j = 0..2, k = 0..8
+            b(i;j,k)    i = 0..8, j = 0..2, k = 0..2
+    Row     R(i)        i = 0..2
+    row     r(i,j)      i = 0..2,j = 0..2
+            r(i)        i = 0..8
+    Col     C(i)        i = 0..2
+    col     c(i,j)      i = 0..2, j = 0..2
+    col     c(i)      i = 0..8
+    
+ ## Transformations
+ 
+### Rotation
+    r0 = id
+    r1   rotation by pi/2, clockwise
+    r2 = r1^2
+    r3 = r1^3
+    
+
+### Reflection
+    d1  |
+    d2  /
+    d3  -
+    d4  \
+    
+### Row Permution
+    pR(s)   s permutation
+    
+### Col permution
+    pC(s)   s permutation
+    
+### row permutions
+    pr(s)   s permutation
+    
+### col permutions
+    pc(s)   s permutation
