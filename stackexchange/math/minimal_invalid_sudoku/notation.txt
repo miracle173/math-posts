@@ -1,19 +1,19 @@
 # Notation
 
 ## Locations
-    Box     B(i,j)      i = 0..2, j = 0..2
-    box     b(i,j;k,n)  i = 0..2, j = 0..2, k = 0..2, l = 0..2
-            b(i,j,k,n)  i = 0..2, j = 0..2, k = 0..2, l = 0..2
-            b(i; j)     i = 0..8, j = 0..8
-            b(i, j)     i = 0..8, j = 0..8
-            b(i,j;k)    i = 0..2, j = 0..2, k = 0..8
-            b(i;j,k)    i = 0..8, j = 0..2, k = 0..2
-    Row     R(i)        i = 0..2
-    row     r(i,j)      i = 0..2,j = 0..2
-            r(i)        i = 0..8
-    Col     C(i)        i = 0..2
-    col     c(i,j)      i = 0..2, j = 0..2
-    col     c(i)      i = 0..8
+    box         B(i,j)      i = 0..2, j = 0..2
+    cell        b(i,j;k,n)  i = 0..2, j = 0..2, k = 0..2, l = 0..2
+                b(i,j,k,n)  i = 0..2, j = 0..2, k = 0..2, l = 0..2
+                b(i; j)     i = 0..8, j = 0..8
+                b(i, j)     i = 0..8, j = 0..8
+                b(i,j;k)    i = 0..2, j = 0..2, k = 0..8
+                b(i;j,k)    i = 0..8, j = 0..2, k = 0..2
+    box row     R(i)        i = 0..2
+    cell row    r(i,j)      i = 0..2,j = 0..2
+                r(i)        i = 0..8
+    box col     C(i)        i = 0..2
+    cell col    c(i,j)      i = 0..2, j = 0..2
+    col         c(i)      i = 0..8
     
  ## Transformations
  
@@ -25,24 +25,25 @@
     
 
 ### Reflection
-    d1  |
-    d2  /
-    d3  -
-    d4  \
+    d1  /
+    d2  |
+    d3  \
+    d4  -
     
-### Row Permution
+### box row Permution
     pR(s)   s permutation
     
-### Col permution
+### box col permution
     pC(s)   s permutation
     
-### row permutions
-    pr(s)   s permutation
+### cell row permutions
+    pr(i, s)   i = 0..2 (box row index), s permutation of 0,1,2
+    pr(i,j)
     
-### col permutions
-    pc(s)   s permutation
+### cell col permutions
+    pc(i, s)   i = 0..2 (cell row index), s permutation of 0,1,2
 
-# ASCI I Graphic
+# ASCII Graphic
 
 ## simple ascii graphic
 
