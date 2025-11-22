@@ -1,0 +1,68 @@
+/* [wxMaxima: input   start ] */
+load(functs);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+"The program counts the different number of box patterns for 3 and 4 boxes.";
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+combination(9,3)=/*111,000,000*/ 1
+* /*select line: row or column */ 6 
++ /*110,100,000*/  1
+* /*select row r1 */ 3
+* /* select row r2 */ 2
+* /* select col c1 */ 3
+* /* select col c2 */ 2
+* /* elements are (r1,c1),(r1,c2),(r2,c1) */ 1
++ /* 110,001,000 */ 1
+* /* select row r1 */ 3
+* /* select row r2 */ 2 
+* /* select column c3 */ 3
+* /* elements are (r1,c1),(r1,c2),(r2,c3) */  1
+*/*rotate, too */ 2
++ /* 100,010,001 */ 1
+* /* select row r1 */ 3
+* /* select row r2 */ 2
+* /* select row r3 */ 1
+* /* elements are (r1,c1)(r2,c2),(r3,c3) */ 1;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+ 
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+combination(9,4)= /* 111,100,000 */ 1
+* /* select a row r1*/3
+* /*slect a row r2 */ 2
+* /* select a col c1   */ 3
+* /* elements are (r1,c1),(r1,c2),(r2,c1),(r2,c2) */ 1
+* /* rotate, too */ 2
++ /* 110,110,000 */ 1
+*/* select a row r3 */ 3
+* /* select a col c3 */ 3
+* /* elements are (r1,c1),(r1,c2),(r2,c1),(r2,c2) */ 1
++ /* 110,101,000 */ 1
+* /* select a row r3 */ 3
+* /* select a col c1 */ 3
+* /* select a col c2  */ 2
+* /* elements are (r1,c1),(r1,c2),(r2,c1),(r2,c3) */ 1
+* /* rotate, too */  2
++ /* 110,100,001 */ 1
+* /* select a row r1,r2,r3 */ 3*2*1
+* /* select a column c1,c2,c3 */ 3*2*1
+* /* cells are (r1,c1), (r1,c2), (r2,c1),(r3,c3) */ 1
++ /* 110,001,001 */ 1
+* /* select a row r1 */ 3
+*  /* select a col c3 */ 3
+* /* cells are (r1,c1),(r1,c2),(r2,c3),(r3,c3) */ 1;
+;
+/* [wxMaxima: input   end   ] */
+
+
+
