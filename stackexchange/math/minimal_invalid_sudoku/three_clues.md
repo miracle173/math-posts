@@ -1,29 +1,39 @@
 # box patterns
 ## three boxes 
 ## 1-type 1
-    o o o
+    A B C
     . . .
     . . .
+
+Isomorphisms: AB, AC, BC, ABC, ACB
 
 # 1-type 2
-    o o .
-    o . .
+    A B .
+    C . .
     . . .
 
+Isomorpisms: BC
+
 # 1-type 3
-    o o .
-    . . o
+    A B .
+    . . C
     . . .
+
+Isomorpisms: AB    
 
 # 1-type 4
     o . .
     . o .
     . . o
 
+Isomorpisms: AB, AC, BC, ABC, ACB
+
 # 2-type 1.1
     +---+---+---+
     | a | b | c |
     +---+---+---+
+
+Isomorpisms: AB, AC, BC, ABC, ACB
 
 # 2-type 1.2
 
@@ -32,13 +42,17 @@
     | . | . | c |
     +---+---+---+
 
+Isomorpisms:  AB    
+
 # 2-type 1.3
     +---+---+---+
     | a | . | . |
     | . | b | . |
     | . | . | c |
     +---+---+---+
-    
+
+Isomorpisms: AB, AC, BC, ABC, ACB
+
 # 2-type 2.1
     +-----+---+
     | a . | b |
@@ -46,6 +60,9 @@
     +-----+---+
     | c . |
     +-----+
+
+R-Isomorpisms: BC
+    
   
 # 2-type 2.2
    +-----+---+
@@ -54,6 +71,8 @@
     +-----+---+
     | . c |
     +-----+
+
+Isomorpisms: none
     
 # 2-type 2.3
     +-----+---+
@@ -63,6 +82,8 @@
     | . c |
     +-----+    
 
+R-Isomorpisms: BC
+
 # 2-type 3.1
     +---+---+
     | a | b |
@@ -70,6 +91,8 @@
     +---+---+---+    
             | c |
             +---+
+
+Isomorpisms:  AB    
   
  # 2-type 3.2
     +---+---+
@@ -79,6 +102,8 @@
             | c |
             +---+
 
+Isomorpisms:  AB    
+
  # 2-type 4.1
     +---+
     | a |
@@ -86,9 +111,9 @@
         | b |
         +---+---+    
             | c |
-
-
             +---+            
+
+Isomorpisms: AB, AC, BC, ABC, ACB
 
 
 
