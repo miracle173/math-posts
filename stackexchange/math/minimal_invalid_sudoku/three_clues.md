@@ -12,28 +12,28 @@ Isomorphisms: AB, AC, BC, ABC, ACB
     C . .
     . . .
 
-Isomorpisms: BC
+Isomorphisms: BC
 
 # 1-type 3
     A B .
     . . C
     . . .
 
-Isomorpisms: AB    
+Isomorphisms: AB    
 
 # 1-type 4
     o . .
     . o .
     . . o
 
-Isomorpisms: AB, AC, BC, ABC, ACB
+Isomorphisms: AB, AC, BC, ABC, ACB
 
 # 2-type 1.1
     +---+---+---+
     | a | b | c |
     +---+---+---+
 
-Isomorpisms: AB, AC, BC, ABC, ACB
+Isomorphisms: AB, AC, BC, ABC, ACB
 
 # 2-type 1.2
 
@@ -42,7 +42,7 @@ Isomorpisms: AB, AC, BC, ABC, ACB
     | . | . | c |
     +---+---+---+
 
-Isomorpisms:  AB    
+Isomorphisms:  AB    
 
 # 2-type 1.3
     +---+---+---+
@@ -51,7 +51,7 @@ Isomorpisms:  AB
     | . | . | c |
     +---+---+---+
 
-Isomorpisms: AB, AC, BC, ABC, ACB
+Isomorphisms: AB, AC, BC, ABC, ACB
 
 # 2-type 2.1
     +-----+---+
@@ -61,7 +61,7 @@ Isomorpisms: AB, AC, BC, ABC, ACB
     | c . |
     +-----+
 
-R-Isomorpisms: BC
+R-Isomorphisms: BC
     
   
 # 2-type 2.2
@@ -72,7 +72,7 @@ R-Isomorpisms: BC
     | . c |
     +-----+
 
-Isomorpisms: none
+Isomorphisms: none
     
 # 2-type 2.3
     +-----+---+
@@ -82,7 +82,7 @@ Isomorpisms: none
     | . c |
     +-----+    
 
-R-Isomorpisms: BC
+R-Isomorphisms: BC
 
 # 2-type 3.1
     +---+---+
@@ -92,7 +92,7 @@ R-Isomorpisms: BC
             | c |
             +---+
 
-Isomorpisms:  AB    
+Isomorphisms:  AB    
   
  # 2-type 3.2
     +---+---+
@@ -102,7 +102,7 @@ Isomorpisms:  AB
             | c |
             +---+
 
-Isomorpisms:  AB    
+Isomorphisms:  AB    
 
  # 2-type 4.1
     +---+
@@ -113,7 +113,7 @@ Isomorpisms:  AB
             | c |
             +---+            
 
-Isomorpisms: AB, AC, BC, ABC, ACB
+Isomorphisms: AB, AC, BC, ABC, ACB
 
 
 
