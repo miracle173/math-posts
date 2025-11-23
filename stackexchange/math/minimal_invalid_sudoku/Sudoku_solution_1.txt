@@ -1,7 +1,7 @@
 https://de.wikipedia.org/wiki/Sudoku
 https://de.wikipedia.org/wiki/Sudoku#/media/Datei:Sudoku_solution_1.svg
 
-file original: Sudoku_solution_1.svg in this github directory
+copy of file original: Sudoku_solution_1.svg in this github directory
 
 
 534 678 912 
