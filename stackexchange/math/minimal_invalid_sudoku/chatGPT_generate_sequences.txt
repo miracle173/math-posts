@@ -70,3 +70,96 @@ Wenn du möchtest, kann ich auch:
 ✔ nur Folgen mit maximalem Wert k erzeugen
 
 Sag einfach Bescheid!
+
+
+###################################################################################################################
+ danach habe ich eine iterative Lösung verlangt und folgendes erhalten:
+
+Hier kommt eine **vollständig iterative Version**, die **alle Folgen der Länge n** erzeugt, bei denen:
+
+* die erste Zahl **1** ist
+* jede weitere Zahl entweder
+
+  * eine **bereits erschienene Zahl** ist oder
+  * genau **1 größer als die bisher größte Zahl**
+
+und die Ausgabe wird **lexikographisch sortiert**.
+
+Dies entspricht einer iterativen Erzeugung aller **Restricted Growth Sequences (RGS)**.
+
+---
+
+# ✅ **Iterative Python-Version (ohne Rekursion, lexikographisch sortiert)**
+
+```python
+def generate_sequences_iterative(n):
+    if n == 0:
+        return []
+
+    # wir bauen von kürzeren zu längeren Folgen auf
+    sequences = [(1,)]  # Start: nur eine Folge der Länge 1
+
+    for length in range(2, n + 1):
+        new_sequences = []
+        for seq in sequences:
+            current_max = max(seq)
+
+            # Option 1: Wiederverwendung eines alten Wertes
+            for x in range(1, current_max + 1):
+                new_sequences.append(seq + (x,))
+
+            # Option 2: neues Element current_max + 1
+            new_sequences.append(seq + (current_max + 1,))
+
+        sequences = new_sequences
+
+    # lexikographisch sortieren
+    sequences.sort()
+    return sequences
+
+
+# Beispiel
+if __name__ == "__main__":
+    n = int(input("n = "))
+    sequences = generate_sequences_iterative(n)
+    for s in sequences:
+        print(s)
+    print(f"Anzahl: {len(sequences)}")
+```
+
+---
+
+# 🔍 Beispiel für n = 3:
+
+```
+(1, 1, 1)
+(1, 1, 2)
+(1, 2, 1)
+(1, 2, 2)
+(1, 2, 3)
+```
+
+---
+
+# 📌 Erklärung der Iteration
+
+* `sequences` enthält alle Folgen der aktuellen Länge.
+* Für jede Folge berechnen wir den aktuellen Maximalwert.
+* Dann hängen wir **alle erlaubten Werte** hinten an:
+
+  * `1 .. current_max` (existierende Klassen)
+  * `current_max + 1` (neue Klasse)
+* Dadurch generieren wir alle Folgen der nächstgrößeren Länge.
+* Am Schluss werden alle Folgen lexikographisch sortiert.
+
+---
+
+Wenn du möchtest, kann ich dir außerdem:
+
+✔ das gleiche Verfahren als Generator schreiben
+✔ direkt als Strings ausgeben
+✔ eine iterative Version mit weniger Speicherverbrauch bauen
+✔ die Ergebnisse als Baumgrafik darstellen
+
+Sag einfach Bescheid!
+
