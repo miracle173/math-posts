@@ -1,0 +1,72 @@
+Meine Eingabe:
+Erstelle ein Python-Programm, das alle Folgen von n Zahlen erstellt, sodass die erste Zahl 1 ist und jede weiter Zahl immer gleich eine Zahl ist, die in dieser Folge schon ausgegeben wurde oder um 1 gößer als alle Zahlen, die in dieser Folge schon ausgegeben wurden
+
+Dnach wurde ein Progrmm erstellt, Ich h habee dann noch angegeben, v"lexikographisch sortieren, und erhalten:
+
+########################
+
+Hier ist das gleiche Programm wie zuvor – **aber alle erzeugten Folgen werden am Ende lexikographisch sortiert**, bevor sie ausgegeben werden.
+
+---
+
+# ✅ **Python-Programm (lexikographisch sortiert)**
+
+```python
+def generate_sequences(n):
+    result = []
+    seq = [0] * n
+    seq[0] = 1
+
+    def backtrack(i, current_max):
+        if i == n:
+            result.append(tuple(seq))   # tuple macht spätere Sortierung einfacher
+            return
+
+        # Option 1: benutze eine schon verwendete Zahl (1 .. current_max)
+        for x in range(1, current_max + 1):
+            seq[i] = x
+            backtrack(i + 1, current_max)
+
+        # Option 2: benutze current_max + 1 (neue Zahl)
+        seq[i] = current_max + 1
+        backtrack(i + 1, current_max + 1)
+
+    backtrack(1, 1)
+
+    # Lexikographisch sortieren
+    result.sort()
+
+    return result
+
+
+# Beispiel
+if __name__ == "__main__":
+    n = int(input("n = "))
+    sequences = generate_sequences(n)
+    for s in sequences:
+        print(s)
+    print(f"Anzahl: {len(sequences)}")
+```
+
+---
+
+# 🔍 Beispiel für n = 3 (lexikographisch sortiert)
+
+```
+(1, 1, 1)
+(1, 1, 2)
+(1, 2, 1)
+(1, 2, 2)
+(1, 2, 3)
+```
+
+---
+
+Wenn du möchtest, kann ich auch:
+
+✔ als Strings ausgeben (`1 2 1` statt `(1,2,1)`)
+✔ in Dateien speichern
+✔ iterative Version statt rekursiv
+✔ nur Folgen mit maximalem Wert k erzeugen
+
+Sag einfach Bescheid!
