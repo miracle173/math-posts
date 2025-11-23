@@ -1,59 +1,69 @@
 # box patterns
 ## three boxes 
-## 1-type 1
+
+### 1-type
+#### 1-type 1
     A B C
     . . .
     . . .
 
-Isomorphisms: AB, AC, BC, ABC, ACB
+* **weight:** (1,1,1/0,0,0/0,0,0)
+* **T-Isomorphisms:** AB, AC, BC, ABC, ACB
 
-# 1-type 2
+#### 1-type 2
     A B .
     C . .
     . . .
 
-Isomorphisms: BC
+* **weight:** (1,1,0/1,0,0/0,0,0)
+* **R-Isomorphisms: BC**
 
-# 1-type 3
+#### 1-type 3
     A B .
     . . C
     . . .
 
-Isomorphisms: AB    
+* **weight:** (1,1,0/0,0,1/0,0,0)
+* **T-Isomorphisms: AB**
 
-# 1-type 4
-    o . .
-    . o .
-    . . o
+#### 1-type 4
+    A . .
+    . B .
+    . . C
 
-Isomorphisms: AB, AC, BC, ABC, ACB
+* **weight:** (1,0,0/0,1,0/0,0,1)
+* **T-Isomorphisms: AB, AC, BC, ABC, ACB**
+* **R-Isomorphisms: AB, AC, BC, ABC, ACB**
 
-# 2-type 1.1
+#### 2-type 1.1
     +---+---+---+
     | a | b | c |
     +---+---+---+
 
-Isomorphisms: AB, AC, BC, ABC, ACB
+* **weight:** (1,1,1/0,0,0/0,0,0)((2,2,2),(2,2,2))
+* **T-Isomorphisms: AB, AC, BC, ABC, ACB**
 
-# 2-type 1.2
+#### 2-type 1.2
 
     +---+---+---+
     | a | b | . |
     | . | . | c |
     +---+---+---+
 
-Isomorphisms:  AB    
+* **weight:** (1,1,1/0,0,0/0,0,0)((2,2,1),(2,2,2))
+* **T-Isomorphisms:  AB**    
 
-# 2-type 1.3
+#### 2-type 1.3
     +---+---+---+
     | a | . | . |
     | . | b | . |
     | . | . | c |
     +---+---+---+
 
-Isomorphisms: AB, AC, BC, ABC, ACB
+* **weight:** (1,1,1/0,0,0/0,0,0)((2,1,0),(2,2,2))
+* **T-Isomorphisms: AB, AC, BC, ABC, ACB**
 
-# 2-type 2.1
+#### 2-type 2.1
     +-----+---+
     | a . | b |
     | . . | . |
@@ -61,10 +71,11 @@ Isomorphisms: AB, AC, BC, ABC, ACB
     | c . |
     +-----+
 
-R-Isomorphisms: BC
+* **weight:** (1,1,0/1,0,0/0,0,0)((2,2,2)(2,2,2))
+* **R-Isomorphisms: BC**
     
   
-# 2-type 2.2
+#### 2-type 2.2
    +-----+---+
     | a . | b |
     | . . | . |
@@ -72,9 +83,10 @@ R-Isomorphisms: BC
     | . c |
     +-----+
 
-Isomorphisms: none
+* **weight:** (1,1,0/1,0,0/0,0,0)((2,2,2)(2,2,1))
+* **Isomorphisms: none**
     
-# 2-type 2.3
+#### 2-type 2.3
     +-----+---+
     | a . | . |
     | . . | b |
@@ -82,9 +94,10 @@ Isomorphisms: none
     | . c |
     +-----+    
 
-R-Isomorphisms: BC
+* **weight:** (1,1,0/1,0,0/0,0,0)((2,1,2)(2,2,1))
+* **IR-Isomorphisms: BC**
 
-# 2-type 3.1
+#### 2-type 3.1
     +---+---+
     | a | b |
     | . | . |
@@ -94,7 +107,7 @@ R-Isomorphisms: BC
 
 Isomorphisms:  AB    
   
- # 2-type 3.2
+ #### 2-type 3.2
     +---+---+
     | a | . |
     | . | b |
@@ -104,7 +117,7 @@ Isomorphisms:  AB
 
 Isomorphisms:  AB    
 
- # 2-type 4.1
+ #### 2-type 4.1
     +---+
     | a |
     +---+---+  
