@@ -131,6 +131,25 @@
 * **weight:** (1/0,1/0,0,1)((2,2,2)(2,2,2)
 * **T-Isomorphisms: AB, AC, BC, ABC, ACB**
 * **R-Isomorphisms: AB, AC, BC, ABC, ACB**
+
+## two boxed
+
+### 1-type
+#### 1-type 1
+    A B .
+    . . .
+    . . .
+
+* **weight:** (2,1)
+* **R-Isomorphisms:** id
+ 
+#### 1-type2
+    A . .
+    . B .
+    . . .
+
+* **weight:** (2/0,1)
+* **R-Isomorphisms:** id
  
 # Symbol Configurations
     1 2 3
