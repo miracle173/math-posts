@@ -105,7 +105,8 @@
             | c |
             +---+
 
-Isomorphisms:  AB    
+* **weight:** (1,1/0,0,1)((2,2,2)(2,2,2))
+* **T-Isomorphisms: AB**  
   
  #### 2-type 3.2
     +---+---+
@@ -115,7 +116,8 @@ Isomorphisms:  AB
             | c |
             +---+
 
-Isomorphisms:  AB    
+* **weight:** (1,1/0,0,1)((2,1,2)(2,2,2))
+* **T-Isomorphisms: AB**  
 
  #### 2-type 4.1
     +---+
@@ -126,15 +128,17 @@ Isomorphisms:  AB
             | c |
             +---+            
 
-Isomorphisms: AB, AC, BC, ABC, ACB
-
+* **weight:** (1/0,1/0,0,1)((2,2,2)(2,2,2)
+* **T-Isomorphisms: AB, AC, BC, ABC, ACB**
+* **R-Isomorphisms: AB, AC, BC, ABC, ACB**
+ 
 # Symbol Configurations
     1 2 3
 
     1 2 2
 
-    1 1 2
     1 2 1
+    1 1 2
 
     1 1 1
     
