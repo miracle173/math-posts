@@ -1,0 +1,44 @@
+Algorithmus zum Erzeugen aller möglichen Konfigurationen
+
+Algorithmus 1)
+
+    n ist die Anzahl der Clues
+    1. Optimiere Box Konfigurationen
+    für alle k<=n:
+      3x3 Matrix (jedes Element stellt eine Box dar) mit k Einsen belegen (das bedeutet, dass diese Box belegt ist), andere Koefffizienten sind 0
+        das sind Comb(9,k) verschiedene Belegunegen, für k=4 bzw. k=5 sind das Comb(9,5)=126 verschiedene Matrizen,für andere k ist Comb(9,k) kleiner
+      Wir wollen nun für eine gegebene 3×3-Matrix A diejenige Matrix findet, die durch 
+      * Permutation der Zeilen und
+      * Permutation der Spalten
+      erreichbar ist und
+      deren 9-Tupel (Zeilen hintereinander geschrieben) lexikographisch maximal ist. Das geschieht durch ausprobieren aller 3!*3! Kombinationen von Zeilen und Spaltenpermutationen
+      2. Für jede dieser k Boxen:
+        erzeuge (n(1),...,n(k)) mit 
+            Summe(n(j), j=1..k)=n
+                unterschiedliche Reihenfolge ergibt verschiedene Tupel
+            belege die Boxen, geordnet von links nach rechts und oben nach unten   mit diesen Tupel
+            optimiere und filtere wieder lexikographisch wie oben
+        3. Nun für jede Box, von links nach rechts, oben nach unten:
+            4. für alle a(i) Gruppen von Elemente aus der Box:
+                lrtb-maximal
+                (left-right-top-bottom-maximal)
+                um Maximum zu finden. Nun für alle bisher belegten Boxen gemeinsam
+                Box i0,j0 wird  lrtb-maximal
+                (left-right-top-bottom-maximal) optimiert,                 alle schon behandelten Boxen müssen nachjustiert werden
+                5. für alle restricted growth sequences der Länge n:
+                    belege file Zellen in ihrer Reihenfolge mit den Werten
+                    wir sudoku-Regel Verletzt, dann ausscheiden
+                    liefert Automorphismus Lexikographisch kleinere Folge, dann auscheiden
+                
+Definition "restricted growth sequence":
+1. Die erste Zahl ist immer 1.
+2. Jede neue Zahl ist entweder 
+    eine Zahl, die bereits früher in der Folge vorkam, oder
+    genau um 1 größer als der bisher größte Wert der Folge.
+
+
+            
+                
+     
+  
+    
