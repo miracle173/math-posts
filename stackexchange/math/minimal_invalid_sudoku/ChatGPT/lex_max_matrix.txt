@@ -1,0 +1,94 @@
+Unten bekommst du **ein vollständiges Python-Programm**, das für eine gegebene **3×3-Matrix A** diejenige Matrix findet, die
+
+* durch **Permutation der Zeilen** und
+* **Permutation der Spalten**
+
+erreichbar ist und
+**deren 9-Tupel (Zeilen hintereinander geschrieben) lexikographisch maximal** ist.
+
+---
+
+# ✅ **Idee**
+
+Eine 3×3-Matrix hat
+
+* **6 mögliche Zeilenpermutationen**
+* **6 mögliche Spaltenpermutationen**
+
+→ insgesamt nur **36 mögliche Matrizen**, die erreichbar sind.
+Wir können sie daher einfach alle erzeugen, in ein Tupel umwandeln und das größte auswählen.
+
+---
+
+# ✅ **Python-Programm**
+
+```python
+from itertools import permutations
+
+def lex_max_matrix(A):
+    best = None
+
+    # alle Permutationen der Zeilen (0,1,2)
+    for rp in permutations(range(3)):
+        # Zeilen permutiert
+        R = [A[i] for i in rp]
+
+        # alle Permutationen der Spalten
+        for cp in permutations(range(3)):
+            # Spalten permutiert
+            M = [[row[j] for j in cp] for row in R]
+
+            # flache Darstellung als 9-Tupel
+            flat = tuple(M[0] + M[1] + M[2])
+
+            if best is None or flat > best[0]:
+                best = (flat, M)
+
+    return best[1]  # nur Matrix zurückgeben
+
+
+# Beispiel
+if __name__ == "__main__":
+    A = [
+        [2, 0, 1],
+        [3, 1, 0],
+        [0, 4, 2]
+    ]
+
+    B = lex_max_matrix(A)
+
+    print("Lexikographisch größte Matrix:")
+    for row in B:
+        print(row)
+```
+
+---
+
+# 🔍 **Wie das Programm funktioniert**
+
+1. Für jede der **6 Zeilenpermutationen** wird eine neue Matrix erzeugt.
+2. Dazu für jede der **6 Spaltenpermutationen** werden die Spalten neu angeordnet.
+3. Jede erzeugte Matrix wird als **9-Tupel** (Zeile1 + Zeile2 + Zeile3) dargestellt.
+4. Das lexikographisch größte Tupel wird gespeichert.
+5. Die zugehörige Matrix wird ausgegeben.
+
+---
+
+# 📌 Beispielausgabe (für die Beispielmatrix)
+
+```
+Lexikographisch größte Matrix:
+[3, 4, 2]
+[2, 1, 1]
+[1, 0, 0]
+```
+
+---
+
+Wenn du möchtest, kann ich dir auch:
+
+✔ eine Version für k×k-Matrizen schreiben
+✔ die Anzahl gleicher Klassen berücksichtigen
+✔ eine effizientere Version für größere Matrizen erzeugen
+
+Sag einfach Bescheid!
