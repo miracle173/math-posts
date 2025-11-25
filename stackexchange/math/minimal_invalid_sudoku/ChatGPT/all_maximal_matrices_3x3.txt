@@ -1,0 +1,99 @@
+Erstelle ein Python-Programm, das zu einer Zahl n alle möglichen 3*3 Mtrizen findet, deren Koeffizienten nichtnegative ganze Zahlen sind die sich zu n summieren sodaß 
+durch Permutation der Zeilen und
+Permutation der Spalten
+keine Matrix erreichbar ist,
+deren 9-Tupel (Zeilen hintereinander geschrieben) lexikographisch größer ist.
+#######################################################################################
+Unten bekommst du ein **korrektes und vollständiges Python-Programm**, das für eine gegebene Zahl **n** alle **3×3-Matrizen** mit
+
+* nichtnegativen ganzen Zahlen,
+* deren Summe **n** ist,
+
+erzeugt **und nur diejenigen ausgibt**, die durch beliebige Zeilen- und Spaltenpermutationen **nicht** in eine lexikographisch größere Matrix überführt werden können.
+
+Das heißt:
+Wir erzeugen **alle 3×3-Matrizen mit Summe n**, berechnen für jede Matrix die **maximal erreichbare Matrix unter Zeilen/Spaltenpermutation**, und wählen nur die, für die die Originalmatrix selbst bereits diese maximale Form ist.
+
+---
+
+# ✅ **Python-Programm**
+
+Dieses Programm ist vollständig und funktionsfähig:
+
+```python
+from itertools import product, permutations
+
+# Berechnet die lexikographisch größte Matrix, die durch
+# Zeilen/Spaltenpermutationen aus A erreichbar ist.
+def lex_max_under_permutations(A):
+    best = None
+    for rp in permutations(range(3)):
+        R = [A[i] for i in rp]
+        for cp in permutations(range(3)):
+            M = [[row[j] for j in cp] for row in R]
+            tup = tuple(M[0] + M[1] + M[2])
+            if best is None or tup > best[0]:
+                best = (tup, M)
+    return best[0]   # lexikographisch größtes 9-Tupel
+
+
+# Hauptfunktion
+def all_maximal_matrices(n):
+    results = []
+    # alle 9er-Tupel aus nichtnegativen ganzen Zahlen mit Summe n
+    for tup in product(range(n + 1), repeat=9):
+        if sum(tup) != n:
+            continue
+        
+        # Tupel → Matrix
+        A = [list(tup[0:3]), list(tup[3:6]), list(tup[6:9])]
+
+        flat = tup
+        lexmax = lex_max_under_permutations(A)
+
+        # nur behalten, wenn A selbst das Maximum ist
+        if flat == lexmax:
+            results.append(A)
+
+    return results
+
+
+# Beispielaufruf
+if __name__ == "__main__":
+    n = int(input("n = "))
+    matrices = all_maximal_matrices(n)
+
+    print(f"Anzahl maximaler Matrizen für n={n}: {len(matrices)}")
+    for M in matrices:
+        print("Matrix:")
+        for row in M:
+            print(row)
+        print()
+```
+
+---
+
+# 🔍 **Was das Programm macht**
+
+Für jede mögliche Matrix mit Summe n:
+
+1. Sie wird als 3×3-Matrix interpretiert.
+2. Es werden alle **Zeilen- und Spaltenpermutationen** durchlaufen (6×6 = 36 Stück).
+3. Die lexikographisch größte erreichbare Matrix wird berechnet.
+4. Nur wenn die Matrix selbst bereits diese maximale Form ist, wird sie ausgegeben.
+
+Damit erhältst du genau die **kanonischen Repräsentanten der Äquivalenzklassen** von 3×3-Matrizen mit Summenbedingung unter Zeilen/Spaltenpermutation.
+
+---
+
+# ✨ Hinweise
+
+* Für kleine n (z. B. n ≤ 8) läuft das Programm sehr schnell.
+* Für größere n wächst die Anzahl der Matrizen stark an (O(n⁸)), aber das Verfahren bleibt korrekt.
+* Wenn du möchtest, kann ich dir:
+
+✔ eine effizientere Version schreiben (z. B. dynamische Generation ohne product)
+✔ eine Version, die nur Matrizen mit maximaler Zeilensumme zuerst erzeugt
+✔ parallele Berechnung (multiprocessing)
+
+Sag einfach Bescheid!
