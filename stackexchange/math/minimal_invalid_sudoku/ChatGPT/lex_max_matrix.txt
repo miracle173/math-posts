@@ -1,3 +1,11 @@
+Gegeben ist ein 3*3 Matrix, sie hat also 3 Zeilen und 3 Spalten, also insgesamt 9 Elemente. Die Matrixelemente sind  nichtnegative ganze Zahlen, die Summe aller Elemente ist n. :
+1. Es werden zwei Zeilen vertauscht
+2. Es werden zwei Spalten vertauscht
+Diese Operationen können beliebig oft in beliebiger Reihenfolge ausgeführt werden.
+Schreibt man die drei Zeilen nebeneinander, hat man ein 9-Tupel von Zahlen. Schreibe ein Pythonprogramm, das das lexikographisch Grüßte Matrix ausgibt, die nach Aussführung der oben angegebenen Operationen zu einer gegebenen Matrix gefunden werden kann.
+
+####################################################################
+
 Unten bekommst du **ein vollständiges Python-Programm**, das für eine gegebene **3×3-Matrix A** diejenige Matrix findet, die
 
 * durch **Permutation der Zeilen** und
