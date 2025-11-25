@@ -19,7 +19,7 @@
  
 ### Rotation
     r0 = id
-    r1   rotation by pi/2, clockwise
+    r1   rotation by pi/2, counterclockwise
     r2 = r1^2
     r3 = r1^3
     
