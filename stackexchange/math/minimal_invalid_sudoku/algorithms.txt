@@ -36,6 +36,12 @@ Definition "restricted growth sequence":
     eine Zahl, die bereits früher in der Folge vorkam, oder
     genau um 1 größer als der bisher größte Wert der Folge.
 
+Algoritmu 2)
+lrtd-max-stndardize all combinations of n points in a n*n-grid
+then put horizontal and vertical box borders in the result
+...
+
+
 
             
                 
