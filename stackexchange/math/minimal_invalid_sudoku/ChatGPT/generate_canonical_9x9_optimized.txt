@@ -1,0 +1,316 @@
+Schreibe eine optimierte Version
+#################################
+
+Gute Wahl — für 9×9 0/1-Matrizen mit genau `n` Einsen braucht es sinnvolle Pruning- und Symmetriebrechungsregeln, sonst explodiert die Suche. Unten ist eine **optimierte, aber noch praktikable** Python-Implementierung. Sie benutzt mehrere Techniken:
+
+* Repräsentiere jede Zeile als 9-Bit Integer (`0..511`) — sehr schneller Vergleich/Sortierung.
+* Backtracking **zeilenweise** (fülle Row 0..8).
+* **Symmetriebrechung**: wähle nur Zeilen, sodass die bisher erzeugten Zeilen (nach einer heuristischen, besten Spaltenordnung) nicht kleiner werden — das verhindert Erzeugung von Matrizen, die sich nur durch Zeilenpermutation unterscheiden.
+* **Obere Schranke (Upper bound) zur frühen Abschneidung**: berechne für eine partielle Matrix die lexikographisch bestmögliche 81-Tupel-Fortsetzung (unter günstiger Anordnung der verbleibenden Einsen und unter günstiger Spaltenordnung). Wenn diese obere Schranke nicht besser ist als die bisher gefundene globale beste kanonische Matrix, wird der Suchzweig verworfen.
+* Beim Abschluss einer Matrix wird die **tatsächliche kanonische Form** effizient(er) berechnet: für jede Permutation der Zeilen (die in der Regel viel weniger als 9! sein kann, weil wir Zeilen als Integers oft mit Duplikaten haben) sortieren wir die Spalten lexikographisch, daraus entsteht das maximale 81-Tupel. Wir cachen Ergebnisse nach Multimenge der Zeilen, um Wiederholungskosten zu vermeiden.
+
+Wichtig: das Problem ist trotz Optimierungen schwierig — für mittlere n (z. B. `n≈30..50`) kann es sehr lange dauern. Die Implementierung macht aber **viel** Pruning und reduziert die cazetische Größe drastisch gegenüber naivem Durchsuchen.
+
+---
+
+## Programm
+
+```python
+#!/usr/bin/env python3
+from itertools import combinations, permutations
+from functools import lru_cache
+import sys
+
+# ------------------------------
+# Hilfsfunktionen / Repräsentation
+# ------------------------------
+
+# Alle möglichen 9-bit-Zeilen (0..511) und ihre Einsanzahl
+ALL_ROWS = list(range(512))  # 2^9 = 512
+POPCOUNT = [bin(x).count("1") for x in ALL_ROWS]
+
+def introw_to_list(r):
+    "Konvertiert 9-bit int in Liste von 0/1 (Länge 9)."
+    return [(r >> (8 - j)) & 1 for j in range(9)]
+
+def row_list_to_int(lst):
+    "Konvertiert Liste 0/1 (Länge 9) in int."
+    val = 0
+    for b in lst:
+        val = (val << 1) | (b & 1)
+    return val
+
+def flatten_matrix_rows_int(rows):
+    "Gibt flaches Tuple (81 Elemente) von Liste von row-ints (Länge 9) zurück."
+    out = []
+    for r in rows:
+        out.extend(introw_to_list(r))
+    return tuple(out)
+
+# ------------------------------
+# Spalten-Ordnung heuristisch: best mögliche Spaltenordnung für aktuelles Partial
+# ------------------------------
+
+def best_column_order_for_partial(rows_partial, filled_rows_count):
+    """
+    rows_partial: Liste von row-int für die ersten filled_rows_count Zeilen.
+    filled_rows_count in 0..9.
+    Wir bauen für jede Spalte ihr "prefix" (bekannte bits) als tuple,
+    und sortieren die Spalten absteigend nach diesem Präfix (besser -> links).
+    Rückgabe: permutation list col_order of indices 0..8
+    """
+    # Erzeuge für jede Spalte j ein Key-Tupel (bit0,bit1,...,bit_{filled_rows_count-1})
+    keys = []
+    for j in range(9):
+        key = []
+        for r in range(filled_rows_count):
+            key.append((rows_partial[r] >> (8 - j)) & 1)
+        # für Vergleich: longer prefix larger; we want columns with more early 1s to come first
+        keys.append((tuple(key), j))
+    # Sort descending by key (prefix), break ties by column index (higher index later)
+    keys.sort(key=lambda kj: (kj[0], kj[1]), reverse=True)
+    return [kj[1] for kj in keys]
+
+# ------------------------------
+# Upper bound: lexicographisch bestmögliche Fortsetzung
+# ------------------------------
+
+def upper_bound_tuple(rows_partial, filled_count, remaining_rows_count, remaining_ones):
+    """
+    Berechnet eine (grobe aber gültige) obere Schranke für das 81-Tupel,
+    das man maximal erreichen kann, wenn man die bereits gesetzten
+    'rows_partial' (Länge filled_count) beibehält und noch remaining_rows_count
+    Zeilen hinzufügen darf mit insgesamt remaining_ones Einsen.
+    Vorgehen (greedy, permissiv -> ergibt obere Schranke):
+      - Bestimme beste Spaltenordnung aus bekannten Prefixen (best_column_order_for_partial)
+      - Für bereits gefüllte Zeilen: ordne Bits nach dieser Spaltenordnung.
+      - Für jede noch kommende Zeile: setze so viele 1en wie möglich ganz links
+        (d.h. in den bisher "besten" Spalten), aber achte auf verbleibende Einsen.
+    Resultat: flaches Tuple (81) das >= jede tatsächliche Fortsetzung ist.
+    """
+    # Spaltenreihenfolge nach bisherigem Partial
+    col_order = best_column_order_for_partial(rows_partial, filled_count)
+    # Für filled rows: ordne ihnen die Spalten
+    ub = []
+    for r in range(filled_count):
+        rowbits = introw_to_list(rows_partial[r])
+        # ordne bits nach col_order
+        ordered = [rowbits[j] for j in col_order]
+        ub.extend(ordered)
+
+    # Für die restlichen Zeilen: greedy verteile verbleibende Einsen zeilenweise
+    rem = remaining_ones
+    for _ in range(remaining_rows_count):
+        # pro Zeile können maximal 9 Einsen gesetzt werden
+        take = min(9, rem)
+        # row will be take ones in leftmost columns, rest zeros
+        ordered = [1]*take + [0]*(9 - take)
+        ub.extend(ordered)
+        rem -= take
+
+    # Falls noch weniger als 9*remaining_rows_count Elemente (sie müssen sein), pad zeros
+    # (eigentlich nicht nötig)
+    assert len(ub) == 9 * (filled_count + remaining_rows_count)
+    # pad to full 81 with zeros if called with fewer rows (shouldn't happen in use)
+    if len(ub) < 81:
+        ub.extend([0]*(81 - len(ub)))
+    return tuple(ub[:81])
+
+# ------------------------------
+# Lexicographisch maximaler Repräsentant (exakt) für fertige Matrix
+# ------------------------------
+
+@lru_cache(maxsize=100000)
+def lexmax_of_rowmultiset(rows_multiset):
+    """
+    rows_multiset: sorted tuple of row-ints length 9 (sorting normalisiert multiset order).
+    Liefert das lexikographisch größte flache Tuple (81) erreichbar durch
+    Zeilen- und Spaltenpermutation für Matrizen mit genau diesen 9 Zeilen (Multiset).
+    Optimierung: iteriere nur über verschiedene Permutationen der Zeilen (mit Duplikatbehandlung).
+    Für jede Reihenfolge sortiere die Spalten lexicographisch (das ist optimal für fixe Zeilenreihenfolge).
+    """
+    rows = list(rows_multiset)
+    best = None
+
+    # Erzeuge alle einzigartigen Permutationen der Zeilen (multiset-permutations)
+    # Efficient way: use indices of occurrences to generate distinct permutations
+    # For simplicity and because len=9 fixed, use itertools.permutations and skip duplicates via seen set.
+    seen_row_orders = set()
+    for perm in permutations(rows):
+        if perm in seen_row_orders:
+            continue
+        seen_row_orders.add(perm)
+
+        # Für diese Zeilenreihenfolge: best column order is to sort columns desc by their column tuples
+        # Build column tuples
+        cols = []
+        for j in range(9):
+            coltuple = tuple(((perm[r] >> (8 - j)) & 1) for r in range(9))
+            cols.append((coltuple, j))
+        cols.sort(key=lambda x: x[0], reverse=True)
+        col_order = [c[1] for c in cols]
+        # Build matrix flattened according to this row order and col_order
+        flat = []
+        for r in range(9):
+            rowbits = introw_to_list(perm[r])
+            ordered = [rowbits[j] for j in col_order]
+            flat.extend(ordered)
+        flat_t = tuple(flat)
+        if best is None or flat_t > best:
+            best = flat_t
+
+    return best
+
+# ------------------------------
+# Backtracking-Erzeugung mit Pruning
+# ------------------------------
+
+def generate_canonical_9x9_optimized(n, verbose=False):
+    """
+    Erzeugt alle 9x9 0/1 Matrizen mit genau n Einsen, die lexicographisch
+    maximal in ihrem Zeilen-/Spalten-Permutationsorbit sind.
+    Rückgabe: Liste von Matrizen (als Liste von 9 row-ints).
+    """
+    results = []
+    best_global = None  # optional: global best known canonical tuple (kann für pruning dienen)
+    # Precompute candidate rows by popcount <=9
+    candidate_rows_by_ones = [[] for _ in range(10)]
+    for r in ALL_ROWS:
+        candidate_rows_by_ones[POPCOUNT[r]].append(r)
+    # For determinism, sort candidate lists descending lexicographically (bigger rows first)
+    for k in range(10):
+        candidate_rows_by_ones[k].sort(reverse=True)
+
+    # Backtracking: fill rows 0..8
+    rows_partial = [0]*9
+    def backtrack(row_idx, ones_left):
+        nonlocal best_global
+        # pruning: impossible remaining ones
+        cells_left = (9 - row_idx) * 9
+        if ones_left < 0 or ones_left > cells_left:
+            return
+
+        # If finished: check canonicality
+        if row_idx == 9:
+            if ones_left != 0:
+                return
+            rows_tuple = tuple(rows_partial)
+            multiset_key = tuple(sorted(rows_tuple))  # sorted multiset representation
+            lexmax = lexmax_of_rowmultiset(multiset_key)
+            flat_self = flatten_matrix_rows_int(rows_tuple)
+            if flat_self == lexmax:
+                results.append(list(rows_tuple))
+                if verbose:
+                    print("Found canonical matrix, total found:", len(results))
+            return
+
+        # Heuristisches Ordering der möglichen Zeilen: iterate rows with possible ones count 0..min(9,ones_left)
+        max_ones_in_row = min(9, ones_left)
+        # For symmetry breaking: ensure chosen row <= previous row (in column-order) ??? We'll implement a weak rule:
+        # We'll restrict choices to rows <= previous row (as integers) to reduce permutations among identical rows,
+        # but we also allow larger ones when necessary.
+        # But better symmetry break: enforce that after mapping columns by current best col order,
+        # the sequence of rows is nonincreasing. We'll compute that.
+        filled_count = row_idx
+        col_order = best_column_order_for_partial(rows_partial[:filled_count], filled_count)
+        # current ordered previous rows for comparison
+        prev_ordered_rows = []
+        for r in range(filled_count):
+            bits = introw_to_list(rows_partial[r])
+            prev_ordered_rows.append(tuple(bits[j] for j in col_order))
+
+        # Iterate candidate rows in descending lex order (bigger first) to find lexicographically larger matrices early
+        for k in range(max_ones_in_row, -1, -1):
+            for r in candidate_rows_by_ones[k]:
+                # Quick check: feasible ones_left after choosing r?
+                if POPCOUNT[r] > ones_left:
+                    continue
+                rows_partial[row_idx] = r
+
+                # Symmetry-break: check nonincreasing property for rows so far under current col_order
+                # compute ordered bits for this new row
+                bits_r = tuple(((r >> (8 - j)) & 1) for j in col_order)
+                # if there is a previous row, ensure prev >= bits_r (nonincreasing)
+                if prev_ordered_rows:
+                    if bits_r > prev_ordered_rows[-1]:
+                        # violates nonincreasing -> skip to reduce row-permutation duplicates
+                        continue
+
+                # Upper bound pruning:
+                remaining_rows = 9 - (row_idx + 1)
+                ub = upper_bound_tuple(rows_partial[:row_idx+1], row_idx+1, remaining_rows, ones_left - POPCOUNT[r])
+                # If we have a global best canonical tuple, and ub <= best_global, then prune
+                if best_global is not None and ub <= best_global:
+                    continue
+
+                # Recurse
+                backtrack(row_idx + 1, ones_left - POPCOUNT[r])
+
+                # After returning, maybe update best_global if we found new canonical matrices
+                if results:
+                    # set best_global to best of found canonical matrices (max tuple)
+                    # compute their flatten tuples to find max
+                    candidate_max = max(flatten_matrix_rows_int(tuple(m)) for m in results)
+                    if best_global is None or candidate_max > best_global:
+                        best_global = candidate_max
+
+        # Clear row slot (not necessary)
+        rows_partial[row_idx] = 0
+
+    # Start
+    backtrack(0, n)
+    return results
+
+# ------------------------------
+# Helper: pretty print matrix
+# ------------------------------
+def print_matrix_rows_int(rows):
+    for r in rows:
+        print(introw_to_list(r))
+
+# ------------------------------
+# Main CLI
+# ------------------------------
+if __name__ == "__main__":
+    if len(sys.argv) >= 2:
+        n = int(sys.argv[1])
+    else:
+        n = int(input("n = "))
+    mats = generate_canonical_9x9_optimized(n, verbose=True)
+    print("Anzahl kanonischer Matrizen:", len(mats))
+    for idx, m in enumerate(mats):
+        print("Matrix", idx+1)
+        print_matrix_rows_int(m)
+        print()
+```
+
+---
+
+## Erläuterung der Hauptideen (kurz)
+
+1. **Zeilen als Integers**: schnelles Kopieren, Popcount, Vergleiche.
+2. **Spalten-Schätzung**: aus schon gesetzten Zeilen wird eine „beste“ Spaltenreihenfolge berechnet, die hilft (a) Symmetrie zu brechen und (b) eine obere Schranke zu bekommen.
+3. **Obere Schranke**: wir simulieren greedy, wie die verbleibenden Einsen ideal verteilt werden könnten (gibt eine gültige Obergrenze für das 81-Tupel). Wenn diese Obergrenze nicht besser ist als bereits gefundene kanonische Matrizen, wird abgeschnitten.
+4. **Kanonisierung mit Cache**: fertige Matrizen werden exakt kanonisiert (Zeilenpermutationen + sortieren der Spalten) — Ergebnis gecached nach Multisets der Zeilen. Das spart viel Zeit, weil viele Matrizen die gleichen Zeilenmultisets haben.
+
+---
+
+## Was du noch tun kannst / Verbesserungen
+
+* Die exakte Kanonisierung (`lexmax_of_rowmultiset`) iteriert aktuell über *alle* unterschiedlichen Zeilenreihenfolgen. Man kann sie beschleunigen, indem man:
+
+  * eine gezielte Branch-and-bound für Zeilenpermutationen schreibt (ähnlich wie oben, aber für fertige Matrix), oder
+  * professionelle Kanonisierer (Nauty/Traces-Ideen) adaptierst.
+* Weitere starke Pruning-Regeln: Spaltensymmetrien während des Backtrackings erkennen und behandeln.
+* Parallelisierung: Suche über die ersten paar Zeilen aufteilen (multiprocessing).
+* Wenn du nur Anzahl statt Matrizen brauchst, kann man zusätzliche Zähleroptimierungen einbauen.
+
+---
+
+Wenn du willst, adaptiere ich das Programm weiter:
+
+* schnelleres exact-lexmax (weniger als 9! durch heuristisches search/branch-and-bound),
+* parallele Version (multiprocessing) für mehrere CPU-Kerne,
+* oder eine Variante, die nur die **Anzahl** der kanonischen Matrizen zurückgibt (statt Listen).
+
+Welche Variante hättest du gern als nächstes?
