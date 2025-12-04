@@ -677,6 +677,7 @@ def all01Representatives(clueCount: int):
 
     # produce sorted output (by full sortId including prefix)
     return [result[key] for key in sorted(result.keys())]
+    #return result
 
 
 def allPartitions(aSum: int, aCount: int):
@@ -712,136 +713,75 @@ def allPartitions(aSum: int, aCount: int):
     return results
 
 
-def allWeightedRepresentatives(clueCount: int):
-    """
-    Creates all weighted representatives derived from the 0/1 representatives.
+from typing import List
 
-    For each k from 1..clueCount:
-        - take all01Representatives(k)
-        - for each representative rep:
-            - for each ordered partition P of clueCount into k parts:
-                - replace the 1s of rep (in row-major order) with the
-                  values of the partition P
-                - create a new SegmentedMatrix
-                - new.sortPrefix = rep.sortPrefix
-                - new.info = {"baseId": rep.sortId, "weights": P}
-                - collect all such matrices
+def allWeightedRepresentatives(clueCount: int) -> List[SegmentedMatrix]:
+    results: List[SegmentedMatrix] = []
 
-    Returns a list of SegmentedMatrix instances.
-    """
-    results = []
+    bases = all01Representatives(clueCount)   # LIST of SegmentedMatrix
 
-    # loop over possible numbers of ones
-    for k in range(1, clueCount + 1):
+    for base in bases:
+        # determine k: usually stored in sortPrefix=[k], but may fall back to counting
+        if hasattr(base, "sortPrefix") and isinstance(base.sortPrefix, list) and len(base.sortPrefix) > 0:
+            k = base.sortPrefix[0]
+        else:
+            k = sum(1 for r in range(base.rowDim) for c in range(base.colDim) if base.data[r][c] == 1)
 
-        base_dict = all01Representatives(k)  # dict: key=sortId, value=SegmentedMatrix
+        if k <= 0:
+            continue
 
-        # generate all partitions of clueCount into k positive summands
         partitions = allPartitions(clueCount, k)
 
-        for base_rep in base_dict.values():
-            # find coordinates where base_rep.data==1 in row-major order
-            one_positions = []
-            for r in range(base_rep.rowDim):
-                for c in range(base_rep.colDim):
-                    if base_rep.data[r][c] == 1:
-                        one_positions.append((r, c))
+        # find 1-positions row-major
+        one_positions = [(r, c)
+                         for r in range(base.rowDim)
+                         for c in range(base.colDim)
+                         if base.data[r][c] == 1]
 
-            if len(one_positions) != k:
-                # safety check — but this should always match
+        if len(one_positions) != k:
+            k = len(one_positions)
+            if k == 0:
                 continue
+            partitions = allPartitions(clueCount, k)
 
-            for P in partitions:
-                # clone base and fill weights
-                new_mat = base_rep.clone()
+        for P in partitions:
+            new_mat = base.clone()
 
-                # keep the sortPrefix of the base matrix
-                new_mat.sortPrefix = list(base_rep.sortPrefix)
+            # ---------------------------------------------------------
+            # NEW LINE: sortPrefix = sortId of original base matrix
+            # ---------------------------------------------------------
+            new_mat.sortPrefix = list(base.sortId)
+            # ---------------------------------------------------------
 
-                # attach info
-                new_mat.info = {
-                    "baseId": base_rep.sortId,
-                    "weights": P
-                }
+            new_mat.info = {
+                "baseId": base.sortId,
+                "weights": tuple(P)
+            }
 
-                # fill partition weights into the 1-cells
-                for (pos, weight) in zip(one_positions, P):
-                    r, c = pos
-                    new_mat.data[r][c] = weight
+            # fill weights
+            for (pos, weight) in zip(one_positions, P):
+                r, c = pos
+                new_mat.data[r][c] = weight
 
-                results.append(new_mat)
+            results.append(new_mat)
 
     return results
-
-
-# -------------------------
-# Example usage / quick test
-# -------------------------
-if __name__ == "__main__":
-    # create a classic segmented matrix with band/stack widths 3,3,3
-    sm = SegmentedMatrix([3, 3, 3], [3, 3, 3])
-    # fill a few values using box notation
-    sm[0][0][0][0] = 1
-    sm[0][0][0][1] = 2
-    sm[0][0][1][0] = 3
-    sm[0][0][1][2] = 4
-    print("Original:")
-    sm.print()
-
-    # read with row lists (shorter rows are padded)
-    rows = [
-        [1, 2, 0, 0, 0, 0, 0, 0, 0],
-        [3, 0, 4],  # will be padded to 9 cols
-        [],  # becomes zeros
-    ] + [[0] * 9 for _ in range(6)]  # rest rows
-    sm.read(rows)
-    print("\nAfter read(rows):")
-    sm.print()
-
-    # reduce (should remove nothing here)
-    sm.reduce()
-    print("\nAfter reduce():")
-    sm.print()
-
-    # expand small example: a 1x1 block matrix
-    bm = BinaryBoxMatrix()
-    bm[0][0][0][0] = 1
-    bm[2][2][0][0] = 1
-    print("\nBinaryBoxMatrix before expand:")
-    bm.print()
-    bm.expand()
-    print("\nBinaryBoxMatrix after expand():")
-    bm.print()
-
-    # toptimize example (will produce canonical representative)
-    sm2 = SegmentedMatrix([1, 1, 1], [1, 1, 1])
-    sm2.read([[9], [1], [2]])
-    print("\nBefore toptimize (sm2):")
-    sm2.print()
-    best = sm2.toptimize()
-    print("\nAfter toptimize (best):")
-    best.print()
 
 
 # ----------------------
 # Example usage (small demonstration)
 # ----------------------
 if __name__ == "__main__":
-
-    gn = SegmentedMatrix([1,1,1],[1,1,1])
-    gn.read([[1,0,1],[0,1,0,],[0,1,1]])
-    gn.print()
-    gn.toptimize().print()
-
-print()
-print("All Representativesfor 4 clues")
-for nr, m in enumerate(all01Representatives(6)):
+    #print(allWeightedRepresentatives(4))
     print()
-    print(nr)
-    print(m.sortId)
-    print(m.sortPrefix)
-    m.print()
-    
+    print("All Representativesfor 4 clues")
+    for nr, m in enumerate(allWeightedRepresentatives(4)):
+        print()
+        print(nr)
+        print(m.sortId)
+        print(m.sortPrefix)
+        m.print()
+        
     
 
 
