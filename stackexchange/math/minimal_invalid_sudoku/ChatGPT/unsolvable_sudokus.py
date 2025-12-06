@@ -41,6 +41,7 @@ class SegmentedMatrix:
         cols = sum(self.stackWidths)
         self.data: List[List[int]] = [[0] * cols for _ in range(rows)]
         self._sortPrefix = []  # writable list, initially empty
+        self.info = None   # free-form metadata
 
     # -------------------------
     # Properties
@@ -79,12 +80,15 @@ class SegmentedMatrix:
     # -------------------------
     # Cloning
     # -------------------------
+
     def clone(self) -> "SegmentedMatrix":
-        """Return a deep copy of the SegmentedMatrix, including sortPrefix."""
+        """Return a deep copy of the SegmentedMatrix, including sortPrefix and info."""
         c = SegmentedMatrix(self.bandWidths[:], self.stackWidths[:])
         c.data = deepcopy(self.data)
         # copy sortPrefix as well (use deepcopy to be safe if user stores nested lists)
         c.sortPrefix = deepcopy(getattr(self, "sortPrefix", []))
+        # copy info if present; default to None
+        c.info = deepcopy(getattr(self, "info", None))
         return c
 
     # -------------------------
@@ -610,6 +614,79 @@ class BinaryBoxMatrix(SegmentedMatrix):
         return (nonzero_count,) + trimmed
 
 
+def test_clone():
+    """
+    Regression test for SegmentedMatrix.clone()
+    Tests multiple object states including:
+    - default empty matrix
+    - non-empty data
+    - sortPrefix set
+    - info set
+    Ensures clone is a deep copy and changes to the clone do not affect the original.
+    """
+    print("Running clone() regression tests...")
+
+    from copy import deepcopy
+
+    # 1) Default empty matrix
+    sm1 = SegmentedMatrix([1,1,1], [1,1,1])
+    c1 = sm1.clone()
+    assert c1.data == sm1.data
+    assert c1.sortPrefix == sm1.sortPrefix
+    assert c1.info == sm1.info
+    assert c1 is not sm1
+    print("Test 1 passed: empty matrix clone")
+
+    # 2) Non-empty data
+    sm2 = SegmentedMatrix([1,1,1], [1,1,1])
+    sm2.data[0][0] = 1
+    c2 = sm2.clone()
+    assert c2.data[0][0] == 1
+    c2.data[0][0] = 9
+    assert sm2.data[0][0] == 1  # ensure deep copy
+    print("Test 2 passed: data deep copy")
+
+    # 3) sortPrefix set
+    sm3 = SegmentedMatrix([1,1,1], [1,1,1])
+    sm3.sortPrefix = [3]
+    c3 = sm3.clone()
+    assert c3.sortPrefix == [3]
+    c3.sortPrefix[0] = 9
+    assert sm3.sortPrefix == [3]  # ensure deep copy
+    print("Test 3 passed: sortPrefix deep copy")
+
+    # 4) info set
+    sm4 = SegmentedMatrix([1,1,1], [1,1,1])
+    sm4.info = {"note": "test", "list": [1,2,3]}
+    c4 = sm4.clone()
+    assert c4.info == sm4.info
+    c4.info["list"][0] = 99
+    assert sm4.info["list"][0] == 1  # ensure deep copy
+    print("Test 4 passed: info deep copy")
+
+    # 5) Combination
+    sm5 = SegmentedMatrix([1,1,1], [1,1,1])
+    sm5.data[0][1] = 2
+    sm5.sortPrefix = [5]
+    sm5.info = {"note": "combo", "values": [4,5]}
+    c5 = sm5.clone()
+    assert c5.data[0][1] == 2
+    assert c5.sortPrefix == [5]
+    assert c5.info == sm5.info
+    c5.data[0][1] = 0
+    c5.sortPrefix[0] = 0
+    c5.info["values"][0] = 0
+    # original unchanged
+    assert sm5.data[0][1] == 2
+    assert sm5.sortPrefix[0] == 5
+    assert sm5.info["values"][0] == 4
+    print("Test 5 passed: combination deep copy")
+
+    print("All clone() regression tests passed successfully!")
+
+
+
+
 
 def all01Representatives(clueCount: int):
     """
@@ -715,73 +792,154 @@ def allPartitions(aSum: int, aCount: int):
 
 from typing import List
 
-def allWeightedRepresentatives(clueCount: int) -> List[SegmentedMatrix]:
-    results: List[SegmentedMatrix] = []
 
-    bases = all01Representatives(clueCount)   # LIST of SegmentedMatrix
+def allWeightedRepresentatives(clueCount: int):
+    """
+    Erweiterte Version:
+    - erzeugt gewichtete Matrizen basierend auf all01Representatives
+    - reduziert alle Matrizen
+    - filtert:
+        A: toptimize(M) > M  -> entferne M
+        B: toptimize(rotate(M)) > M -> entferne M
+    - sortiert das Ergebnis absteigend nach sortId
+    """
+    from itertools import product
+
+    bases = all01Representatives(clueCount)
+    results = []
 
     for base in bases:
-        # determine k: usually stored in sortPrefix=[k], but may fall back to counting
-        if hasattr(base, "sortPrefix") and isinstance(base.sortPrefix, list) and len(base.sortPrefix) > 0:
-            k = base.sortPrefix[0]
-        else:
-            k = sum(1 for r in range(base.rowDim) for c in range(base.colDim) if base.data[r][c] == 1)
-
-        if k <= 0:
+        # Anzahl der Einsen in der Basis-Matrix
+        one_positions = [(r, c) for r, row in enumerate(base.data)
+                                  for c, v in enumerate(row) if v == 1]
+        k = len(one_positions)
+        if k == 0:
             continue
 
-        partitions = allPartitions(clueCount, k)
+        # Partitionen von clueCount in k Summanden
+        parts = allPartitions(clueCount, k)
 
-        # find 1-positions row-major
-        one_positions = [(r, c)
-                         for r in range(base.rowDim)
-                         for c in range(base.colDim)
-                         if base.data[r][c] == 1]
+        # SortId der Basismatrix → wird sortPrefix
+        base_sortKey = base.sortId
 
-        if len(one_positions) != k:
-            k = len(one_positions)
-            if k == 0:
-                continue
-            partitions = allPartitions(clueCount, k)
+        for P in parts:
+            sm = base.clone()
+            sm.info = {"partition": P}
+            sm.sortPrefix = list(base_sortKey)
 
-        for P in partitions:
-            new_mat = base.clone()
+            # Alles auf 0 setzen
+            for r in range(len(sm.data)):
+                for c in range(len(sm.data[0])):
+                    sm.data[r][c] = 0
 
-            # ---------------------------------------------------------
-            # NEW LINE: sortPrefix = sortId of original base matrix
-            # ---------------------------------------------------------
-            new_mat.sortPrefix = list(base.sortId)
-            # ---------------------------------------------------------
+            # Einsen durch Gewichte ersetzen
+            for (r, c), weight in zip(one_positions, P):
+                sm.data[r][c] = weight
 
-            new_mat.info = {
-                "baseId": base.sortId,
-                "weights": tuple(P)
-            }
+            # Reduzieren (wichtig!)
+            sm.reduce()
 
-            # fill weights
-            for (pos, weight) in zip(one_positions, P):
-                r, c = pos
-                new_mat.data[r][c] = weight
+            results.append(sm)
 
-            results.append(new_mat)
+    # ------------------------------------------
+    # Filterphase
+    # ------------------------------------------
 
-    return results
+    filtered = []
+    for sm in results:
+        orig_id = sm.sortId
+
+        # Bedingung A: toptimize(M) größer als M?
+        topo = sm.toptimize()
+        if topo.sortId > orig_id:
+            continue
+
+        # Bedingung B: rotate(M).toptimize() größer als M?
+        rot = sm.clone()
+        rot.rotate()
+        rot_opt = rot.toptimize()
+
+        if rot_opt.sortId > orig_id:
+            continue
+
+        filtered.append(sm)
+
+    # Sortieren nach sortId absteigend
+    filtered.sort(key=lambda sm: sm.sortId, reverse=True)
+
+    return filtered
+
+
+
+# -------------------------
+# Example usage / quick test
+# -------------------------
+if __name__ == "__main__":
+    # create a classic segmented matrix with band/stack widths 3,3,3
+    sm = SegmentedMatrix([3, 3, 3], [3, 3, 3])
+    # fill a few values using box notation
+    sm[0][0][0][0] = 1
+    sm[0][0][0][1] = 2
+    sm[0][0][1][0] = 3
+    sm[0][0][1][2] = 4
+    print("Original:")
+    sm.print()
+
+    # read with row lists (shorter rows are padded)
+    rows = [
+        [1, 2, 0, 0, 0, 0, 0, 0, 0],
+        [3, 0, 4],  # will be padded to 9 cols
+        [],  # becomes zeros
+    ] + [[0] * 9 for _ in range(6)]  # rest rows
+    sm.read(rows)
+    print("\nAfter read(rows):")
+    sm.print()
+
+    # reduce (should remove nothing here)
+    sm.reduce()
+    print("\nAfter reduce():")
+    sm.print()
+
+    # expand small example: a 1x1 block matrix
+    bm = BinaryBoxMatrix()
+    bm[0][0][0][0] = 1
+    bm[2][2][0][0] = 1
+    print("\nBinaryBoxMatrix before expand:")
+    bm.print()
+    bm.expand()
+    print("\nBinaryBoxMatrix after expand():")
+    bm.print()
+
+    # toptimize example (will produce canonical representative)
+    sm2 = SegmentedMatrix([1, 1, 1], [1, 1, 1])
+    sm2.read([[9], [1], [2]])
+    print("\nBefore toptimize (sm2):")
+    sm2.print()
+    best = sm2.toptimize()
+    print("\nAfter toptimize (best):")
+    best.print()
+
 
 
 # ----------------------
 # Example usage (small demonstration)
 # ----------------------
 if __name__ == "__main__":
+    nclues=6
     #print(allWeightedRepresentatives(4))
     print()
-    print("All Representativesfor 4 clues")
-    for nr, m in enumerate(allWeightedRepresentatives(4)):
+    print("All Representativesfor", nclues, " clues")
+    for nr, m in enumerate(allWeightedRepresentatives(nclues)):
         print()
         print(nr)
         print(m.sortId)
         print(m.sortPrefix)
         m.print()
-        
-    
+
+
+
+
+# Run the regression test
+# test_clone()
 
 
