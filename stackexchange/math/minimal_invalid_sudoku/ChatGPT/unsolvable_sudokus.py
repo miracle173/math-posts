@@ -66,16 +66,40 @@ class SegmentedMatrix:
         self._sortPrefix = value
 
     @property
-    def sortId(self) -> Tuple:
+    def sortId(self):
         """
-        sortId = tuple(sortPrefix) + flattened data tuple.
-        This makes sortPrefix the leading part of the lexicographic key.
+        sortId = (tuple(sortPrefix), tuple(flattened_by_band_and_stack))
+
+        Flattening rule:
+        For each band (top to bottom):
+            For each stack (left to right):
+                For each row inside the band:
+                    Append the cells belonging to that stack segment.
         """
-        prefix = tuple(self.sortPrefix)   # ensure immutable
-        flat = tuple(v for row in self.data for v in row)
-        #return prefix + flat
-        #return (prefix,flat)
-        return prefix+(flat,)
+        prefix = tuple(self.sortPrefix)
+
+        flat = []
+
+        row_start = 0
+        for b_width in self.bandWidths:
+            # rows belonging to this band: row_start .. row_start + b_width - 1
+            band_rows = range(row_start, row_start + b_width)
+
+            col_start = 0
+            for s_width in self.stackWidths:
+                # columns belonging to this stack: col_start .. col_start + s_width - 1
+                stack_cols = range(col_start, col_start + s_width)
+
+                # append block contents row-wise
+                for r in band_rows:
+                    for c in stack_cols:
+                        flat.append(self.data[r][c])
+
+                col_start += s_width
+
+            row_start += b_width
+
+        return (prefix, tuple(flat))
 
     # -------------------------
     # Cloning
@@ -752,9 +776,17 @@ def all01Representatives(clueCount: int):
     result = filtered_result
                 
 
-    # produce sorted output (by full sortId including prefix)
-    return [result[key] for key in sorted(result.keys())]
-    #return result
+    result_list = [result[key] for key in sorted(result.keys())]
+
+    # Jede Matrix zuerst reduzieren
+    for sm in result_list:
+        sm.reduce()
+
+    # Neue sortPrefix-Nummerierung
+    for i, sm in enumerate(result_list, start=1):
+        sm.sortPrefix = [i]
+
+    return result_list
 
 
 def allPartitions(aSum: int, aCount: int):
@@ -867,6 +899,10 @@ def allWeightedRepresentatives(clueCount: int):
     # Sortieren nach sortId absteigend
     filtered.sort(key=lambda sm: sm.sortId, reverse=True)
 
+    # Neue sortPrefix-Nummerierung für gewichtete Matrizen
+    for i, sm in enumerate(filtered, start=1):
+        sm.sortPrefix = [i]
+
     return filtered
 
 
@@ -925,11 +961,11 @@ if __name__ == "__main__":
 # Example usage (small demonstration)
 # ----------------------
 if __name__ == "__main__":
-    nclues=6
-    #print(allWeightedRepresentatives(4))
+    nclues=4
     print()
-    print("All Representativesfor", nclues, " clues")
-    for nr, m in enumerate(allWeightedRepresentatives(nclues)):
+    print("All Representatives for", nclues, " clues")
+    #for nr, m in enumerate(allWeightedRepresentatives(nclues)):
+    for nr, m in enumerate(all01Representatives(nclues)):
         print()
         print(nr)
         print(m.sortId)
