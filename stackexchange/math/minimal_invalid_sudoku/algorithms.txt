@@ -36,11 +36,104 @@ Definition "restricted growth sequence":
     eine Zahl, die bereits früher in der Folge vorkam, oder
     genau um 1 größer als der bisher größte Wert der Folge.
 
-Algoritmu 2)
+Algoritmus 2)
 lrtd-max-stndardize all combinations of n points in a n*n-grid
 then put horizontal and vertical box borders in the result
 ...
 
+Algorithmus:
+Gegeben: 
+Eine Gruppe G von Abbildungen einer Menge M nach M, die durch die Menge H=M erzeugt wird, also G=<H> und eine Funktion s von M nach R+. s(m) heißt Größe von m.
+Gesucht:
+Die Menge aller Elemente aus M, die nicht durch eine Abbildung aus G in ein größeres  Element übergeführt werden können, also 
+    L := { x | s(x) >= s(g(x)) für alle g aus G}
+
+Natürlich kann L auf folgende Weise Ermittelt werden
+
+    1. A := M
+    2. for x in A:
+
+Algorithmus zu, Berechnen der maximalen Elemente:
+Gegeben: 
+Eine Gruppe G von Abbildungen einer Menge M nach M, die durch die Menge H=M erzeugt wird, also G=<H> und eine Funktion s von M nach R+. s(m) heißt Größe von m.
+Gesucht:
+Die Menge aller Elemente aus M, die nicht durch eine Abbildung aus G in ein größeres  Element übergeführt werden können, also 
+    L := { x | s(x) >= s(g(x)) für alle g aus G}
+
+Natürlich kann L auf folgende Weise ermittelt werden
+
+    L={}
+    current_maxvalue=0
+    current_maxnodes={}
+    for x in M:
+        for g in G:
+            if s(g(x)) = current_maxvalue:
+                current_maxnodes :=
+                    current_maxnodes + {x}
+            elif s(g(x)) > current_maxvalue:
+                current_maxvalue := g(x)
+                current_maxnodes := {x}
+        L := L + current_maxnodes
+        
+Der if-elif-Block wird |M|*|G| mal durchlaufen. Das Verfahren kann natürlich verkürzt werden. Sobald man erkennt, das x kein maximales Element ist, wird es ignoriert und das nächste x untersucht. 
+
+    L={}
+    for x in M:
+        is_maximal := TRUE
+        for g in G:
+            if s(g(x)) > s(x):
+                is_maximal := FALSE
+                break
+        if is_maximal:
+            L := L + {x}
+
+Verbesserung, wenn man M speichern kann
+
+    A := M
+    L := {}
+    B := {} # Boundary 
+    repeat until A  = {}:
+        current_maxvalue=0
+        current_maxnodes={}
+        retrieve and remove x from A
+        for g in G:
+            y := g(x)
+            retrieve and remove y from A
+            if s(h(y)) = current_maxvalue:
+                current_maxnodes :=
+                    current_maxnodes + {x}
+            elif s(h(x)) > current_maxvalue:
+                current_maxvalue := g(x)
+                current_maxnodes := {x}
+        L := L + current_maxnodes
+ 
+Verbesserung mit Hilfe des Erzeugendensystems
+
+    A := M
+    L := {}
+    B := {} # Boundary 
+    repeat until A  = {}:
+        current_maxvalue=0
+        current_maxnodes={}
+        retrieve and remove x from A
+        B := {x}
+        repeat until B = {}:
+            retrieve and remove y from B
+            for h in H:
+                z := h(y)
+                if z in A:
+                    B := B + {z}
+                    remove z from A 
+                if s(h(y)) = current_maxvalue:
+                    current_maxnodes :=
+                        current_maxnodes + {x}
+                elif s(h(x)) > current_maxvalue:
+                    current_maxvalue := g(x)
+                    current_maxnodes := {x}
+        L := L + current_maxnodes
+                       
+Anmerkung; für die Permutationen von n Elementen bildet <(1,2), (1,3), ..., (1,n) ein Erzeugendensystem.
+            
 
 
             
