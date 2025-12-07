@@ -14,7 +14,8 @@
     box col     C(i)        i = 0..2
     cell col    c(i,j)      i = 0..2, j = 0..2
     col         c(i)      i = 0..8
-    
+
+a box row iscalled band, a box column is called stack. The values in the cells of a sudolu are called clues.
  ## Transformations
  
 ### Rotation
