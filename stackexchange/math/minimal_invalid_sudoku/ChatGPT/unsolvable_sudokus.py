@@ -712,7 +712,7 @@ def test_clone():
 
 
 
-def all01Representatives(clueCount: int):
+def all01BlockRepresentatives(clueCount: int):
     """
     Generate canonical representatives of 3×3 0/1 SegmentedMatrices
     for all k = 1..clueCount, based on toptimize().
@@ -825,10 +825,10 @@ def allPartitions(aSum: int, aCount: int):
 from typing import List
 
 
-def allWeightedRepresentatives(clueCount: int):
+def allWeightedBlockRepresentatives(clueCount: int):
     """
     Erweiterte Version:
-    - erzeugt gewichtete Matrizen basierend auf all01Representatives
+    - erzeugt gewichtete Matrizen basierend auf all01BlockRepresentatives
     - reduziert alle Matrizen
     - filtert:
         A: toptimize(M) > M  -> entferne M
@@ -837,7 +837,7 @@ def allWeightedRepresentatives(clueCount: int):
     """
     from itertools import product
 
-    bases = all01Representatives(clueCount)
+    bases = all01BlockRepresentatives(clueCount)
     results = []
 
     for base in bases:
@@ -873,6 +873,8 @@ def allWeightedRepresentatives(clueCount: int):
 
             results.append(sm)
 
+            
+
     # ------------------------------------------
     # Filterphase
     # ------------------------------------------
@@ -904,6 +906,93 @@ def allWeightedRepresentatives(clueCount: int):
         sm.sortPrefix = [i]
 
     return filtered
+
+
+
+
+from copy import deepcopy
+def all01CellRepresentatives(aClueCount: int):
+    wblist = allWeightedBlockRepresentatives(aClueCount)
+    result = []
+
+    for wb in wblist:
+        # Anzahl der Bänder und Stacks des wb
+        B = len(wb.bandWidths)
+        S = len(wb.stackWidths)
+
+        # --- 1) neue bandWidths bestimmen ---
+        new_bw = []
+        row_start = 0
+        for b in range(B):
+            bw = wb.bandWidths[b]
+            rows = range(row_start, row_start + bw)
+
+            # Summe aller Werte in diesem Band
+            total = 0
+            for r in rows:
+                total += sum(wb.data[r])
+
+            new_bw.append(min(total, 3))
+            row_start += bw
+
+        # --- 2) neue stackWidths bestimmen ---
+        new_sw = []
+        col_start = 0
+        for s in range(S):
+            sw = wb.stackWidths[s]
+            cols = range(col_start, col_start + sw)
+
+            # Summe aller Werte in diesem Stack
+            total = 0
+            for r in range(len(wb.data)):
+                for c in cols:
+                    total += wb.data[r][c]
+
+            new_sw.append(min(total, 3))
+            col_start += sw
+
+        # Falls alles 0 => überspringen
+        if sum(new_bw) == 0 or sum(new_sw) == 0:
+            continue
+
+        # --- 3) neue Matrix anlegen ---
+        sm = SegmentedMatrix(new_bw, new_sw)
+
+        # --- 4) Blockwerte setzen ---
+        row_start = 0
+        for b in range(B):
+            bw = wb.bandWidths[b]
+            band_rows = range(row_start, row_start + bw)
+
+            col_start = 0
+            for s in range(S):
+                sw = wb.stackWidths[s]
+                stack_cols = range(col_start, col_start + sw)
+
+                # Summiere Blockwert = Summe des Blocks, gekappt auf 1 Zelle
+                val = 0
+                for r in band_rows:
+                    for c in stack_cols:
+                        val += wb.data[r][c]
+
+                # In Zielmatrix Block setzen (nur oben links)
+                if new_bw[b] > 0 and new_sw[s] > 0:
+                    sm[b][s][0][0] = val
+
+                col_start += sw
+            row_start += bw
+
+        # SortPrefix & info kopieren
+        sm.sortPrefix = wb.sortPrefix[:]
+        sm.info = wb.info
+
+        result.append(sm)
+
+    return result
+
+
+
+
 
 
 
@@ -961,15 +1050,16 @@ if __name__ == "__main__":
 # Example usage (small demonstration)
 # ----------------------
 if __name__ == "__main__":
-    nclues=4
+    nclues=5
     print()
     print("All Representatives for", nclues, " clues")
-    #for nr, m in enumerate(allWeightedRepresentatives(nclues)):
-    for nr, m in enumerate(all01Representatives(nclues)):
+    #for nr, m in enumerate(allWeightedBlockRepresentatives(nclues)):
+    #for nr, m in enumerate(all01BlockRepresentatives(nclues)):
+    for nr, m in enumerate(all01CellRepresentatives(nclues)):
         print()
         print(nr)
-        print(m.sortId)
-        print(m.sortPrefix)
+        #print(m.sortId)
+        #print(m.sortPrefix)
         m.print()
 
 
