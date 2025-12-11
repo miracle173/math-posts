@@ -8,7 +8,7 @@ $$f: x \to ax+b$$
 
 of 
 
-$$  2f(3-2x)+f(\frac{3-x}{2})=x \tag{1} $$
+$$  {2f(3-2x)+f(\frac{3-x}{2})=x } \tag{1} $$
 
 as [this deleted answer](https://math.stackexchange.com/a/5112969/11206) pointed out. And if $f(x)$ is a solution of $(1)$ then 
 
@@ -16,7 +16,7 @@ $$g(x):=f(x)-l(x)$$
 
 is a solution of
 
-$$2g(3-2x)+g(\frac{3-x}{2})=0 \tag{2}$$
+$${ 2g(3-2x)+g(\frac{3-x}{2})=0 } \tag{2}$$
 
 after substituting
 
@@ -28,7 +28,7 @@ $$2g(y)+g((y+3)/4)=0$$
 
 and further
 
-$$g(y)=-g((y+3)/4)/2 \tag{3}$$
+$${ g(y)=-g((y+3)/4)/2 } \tag{3}$$
 
 and after substituting
 
@@ -40,7 +40,7 @@ $$2g(4y-3)+g(y)=0$$
 
 and so
 
-$$g(y)=-2g(4y-3) \tag 4$$
+$$ { g(y)=-2g(4y-3) }\tag 4$$
 
 If 
 
@@ -52,7 +52,7 @@ $$g(1)=-2g(1)=-g(1)/2$$
 
 which implies 
 
-$$g(1)=0 \tag{5}$$
+$${g(1)=0} \tag{5}$$
 
 The sequence
 
@@ -123,8 +123,9 @@ g: \\&[0,b_2) \cup  \{1\} \cup (c_2,2] &\mapsto &\mathbf R \\
 G-l(0), &\mathrm{if}\, x=0 \\
 0, &\mathrm{if}\, x=1 \\
 G-l(2), &\mathrm{if}\, x=2 \\
-\mathrm{arbitrary}, &x\notin \{0,1,2\}
-\end{array}\right.
+\mathrm{arbitrary}, & \mathrm{if}\,x\notin \{0,1,2\}
+\end{array}
+\right.
 }\end{array}
 $$
 
