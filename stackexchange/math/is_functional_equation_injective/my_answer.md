@@ -49,12 +49,12 @@ d_{n+1}&=&-3+4d_n
 
 This partition has the property that for each $x \in \mathbf R$ the numbers $3-2x$ and $\frac{3-x}{2}$ lie in two adjacent intervals of this partition, but never in the same, except for $x=1$ where these values are both equal to $1$. Instead of the value $a_1=b_1=0$ a different start value can be chosen, it is only necessaty that the value is less than $1$. A similar statement holds for $c_n=d_n=2$.
 
-
-
 So if $j$ is an arbitrary function
-$$j:[0,b_2)\cup \{1\} \cup  (c2,2]  -> \mathbf{R} $$
+$$j:[0,b_2)\cup \{1\} \cup  (c_2,2]  \mapsto \mathbf{R} $$
 then $j$ satisfies $(2)$ on its domain and by $(3)$ it can be uniquely extended to the domain 
-$$[a2,0) \cup [0, b_2) \cup \{1\}  \cup  (c2,2) \cup  [2,d2)$$
+$$[a_2,0) \cup [0, b_2) \cup \{1\}  \cup  (c_2,2] \cup  (2,d_2]$$
+which is the same as 
+$$[a_2,b_2) \cup \{0\} \cup (c_2, d_2)$$
 Now it can be inductively extended from
 $$[a_n,b_n) \cup \{0\} \cup (c_n,d_n] $$
 to 
@@ -79,7 +79,5 @@ G-l(2), &\mathrm{if}\, x=2 \\
 \end{array}\right.
 }\end{array}
 $$
-
-
 
 
