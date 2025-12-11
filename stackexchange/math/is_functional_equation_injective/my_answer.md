@@ -1,8 +1,10 @@
 The function
 $$l(x)=(-2x+5)/9$$
-is a solution of 
+is a solution of the type
+$$f: x \to ax+b$$
+of 
 $$2f(3-2x)+f(\frac{3-x}{2})=x \tag{1}$$
-as [this answer](https://math.stackexchange.com/a/5112969/11206) pointed out. And if $f(x)$ is a solution of $(1)$ then 
+as [this deleted answer](https://math.stackexchange.com/a/5112969/11206) pointed out. And if $f(x)$ is a solution of $(1)$ then 
 $$g(x):=f(x)-l(x)$$
 is a solution of
 $$2g(3-2x)+g(\frac{3-x}{2})=0 \tag{2}$$
@@ -79,5 +81,8 @@ G-l(2), &\mathrm{if}\, x=2 \\
 \end{array}\right.
 }\end{array}
 $$
+
+
+
 
 
