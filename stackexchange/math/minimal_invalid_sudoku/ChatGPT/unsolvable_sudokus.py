@@ -51,6 +51,17 @@ class SegmentedMatrix:
         return len(self.data)
 
     @property
+    def height(self) -> int:
+        """Total number of rows."""
+        return sum(self.bandWidths)
+
+    @property
+    def width(self) -> int:
+        """Total number of columns."""
+        return sum(self.stackWidths)
+    
+
+    @property
     def colDim(self) -> int:
         return len(self.data[0]) if self.data else 0
 
@@ -414,6 +425,159 @@ class SegmentedMatrix:
         # final check
         if self.rowDim != 9 or self.colDim != 9 or self.bandWidths != [3, 3, 3] or self.stackWidths != [3, 3, 3]:
             raise RuntimeError("expand() failed to produce canonical 9x9 segmentation.")
+
+    # -------------------------
+    # Group generators
+    # -------------------------
+    def generate_neighbors(self):
+        """
+        Erzeuge alle Nachbarn dieser Matrix mittels eines Erzeugendensystems
+        der zulässigen Operationen.
+        """
+        neighbors = []
+
+        # 1) Rotation
+        r = self.clone()
+        r.rotate()
+        neighbors.append(r)
+
+        # 2) Band 0 <-> k
+        for k in range(1, len(self.bandWidths)):
+            p = list(range(len(self.bandWidths)))
+            p[0], p[k] = p[k], p[0]
+            x = self.clone()
+            x.permuteBands(p)
+            neighbors.append(x)
+
+        # 3) Stack 0 <-> k
+        for k in range(1, len(self.stackWidths)):
+            p = list(range(len(self.stackWidths)))
+            p[0], p[k] = p[k], p[0]
+            x = self.clone()
+            x.permuteStacks(p)
+            neighbors.append(x)
+
+        # 4) Zeile 0 <-> k in Band j
+        for j, bw in enumerate(self.bandWidths):
+            for k in range(1, bw):
+                p = list(range(bw))
+                p[0], p[k] = p[k], p[0]
+                x = self.clone()
+                x.permuteRows(j, p)
+                neighbors.append(x)
+
+        # 5) Spalte 0 <-> k in Stack j
+        for j, sw in enumerate(self.stackWidths):
+            for k in range(1, sw):
+                p = list(range(sw))
+                p[0], p[k] = p[k], p[0]
+                x = self.clone()
+                x.permuteCols(j, p)
+                neighbors.append(x)
+
+        return neighbors
+
+    def isConsistent(self) -> bool:
+        """
+        Check whether the SegmentedMatrix is consistent:
+        - no non-zero number appears twice in any row
+        - no non-zero number appears twice in any column
+        - no non-zero number appears twice in any block
+        """
+
+        data = self.data
+        nrows = len(data)
+        ncols = len(data[0]) if nrows > 0 else 0
+
+        # --- rows ---
+        for r in range(nrows):
+            seen = set()
+            for v in data[r]:
+                if v != 0:
+                    if v in seen:
+                        return False
+                    seen.add(v)
+
+        # --- columns ---
+        for c in range(ncols):
+            seen = set()
+            for r in range(nrows):
+                v = data[r][c]
+                if v != 0:
+                    if v in seen:
+                        return False
+                    seen.add(v)
+
+        # --- blocks ---
+        row_start = 0
+        for bw in self.bandWidths:
+            col_start = 0
+            for sw in self.stackWidths:
+                seen = set()
+                for r in range(row_start, row_start + bw):
+                    for c in range(col_start, col_start + sw):
+                        v = data[r][c]
+                        if v != 0:
+                            if v in seen:
+                                return False
+                            seen.add(v)
+                col_start += sw
+            row_start += bw
+
+        return True
+
+
+    # -------------------------
+    # Maximal elements under group action
+    # -------------------------
+    @staticmethod
+    def filterMaximalSegmentedMatrices(matrices):
+        """
+        Entfernt alle SegmentedMatrices, aus denen sich mit den zulässigen
+        Gruppenoperationen noch Matrizen mit größerer sortId erzeugen lassen.
+        """
+
+        # unknown: sortId -> SegmentedMatrix
+        unknown = {m.sortId: m.clone() for m in matrices}
+        allMaxima = {}
+
+        while unknown:
+            open_set = {}
+            visited = set()
+            currentMaxima = {}
+
+            # Start mit beliebigem Element
+            sid, start = unknown.popitem()
+            open_set[sid] = start
+
+            maxSortId = None
+
+            while open_set:
+                sid, sm = open_set.popitem()
+
+                if sid in visited:
+                    continue
+                visited.add(sid)
+
+                # Maximum aktualisieren
+                if maxSortId is None or sid > maxSortId:
+                    maxSortId = sid
+                    currentMaxima = {sid: sm}
+                elif sid == maxSortId:
+                    currentMaxima[sid] = sm
+
+                # Nachbarn über Erzeugendensystem
+                for nb in sm.generate_neighbors():
+                    nb_sid = nb.sortId
+                    if nb_sid in unknown:
+                        open_set[nb_sid] = unknown.pop(nb_sid)
+
+            # Aktuelle Maxima sichern
+            allMaxima.update(currentMaxima)
+
+        return list(allMaxima.values())
+
+    
 
     # -------------------------
     # read(): fill rows (list of lists)
@@ -909,9 +1073,119 @@ def allWeightedBlockRepresentatives(clueCount: int):
 
 
 
+##############################################################
+
+
+import itertools
+
+def binary_blocks(h, w, k):
+    """
+    Erzeugt alle h×w-0-1-Matrizen mit genau k Einsen
+    """
+    n = h * w
+    for ones in itertools.combinations(range(n), k):
+        block = [[0]*w for _ in range(h)]
+        for idx in ones:
+            r = idx // w
+            c = idx % w
+            block[r][c] = 1
+        yield block
+
+
+
+
+from itertools import combinations
+
+def all_binary_blocks(height, width, ones):
+    """
+    Liefert alle 0-1-Matrizen (flach als Liste),
+    der Größe height×width mit genau `ones` Einsen.
+    """
+    size = height * width
+    if ones > size:
+        return []
+
+    blocks = []
+    for pos in combinations(range(size), ones):
+        block = [0] * size
+        for p in pos:
+            block[p] = 1
+        blocks.append(block)
+
+    return blocks
+
+
+from itertools import product
+from copy import deepcopy
+
+def expand_weighted_matrix_to_binary(wb: SegmentedMatrix):
+    """
+    Expand a WeightedBlockMatrix into all binary SegmentedMatrices
+    such that each block contains exactly as many 1s as the value
+    in the top-left cell of the block.
+    """
+
+    B = len(wb.bandWidths)
+    S = len(wb.stackWidths)
+
+    # Precompute row ranges for bands
+    band_rows = []
+    r = 0
+    for bw in wb.bandWidths:
+        band_rows.append(list(range(r, r + bw)))
+        r += bw
+
+    # Precompute column ranges for stacks
+    stack_cols = []
+    c = 0
+    for sw in wb.stackWidths:
+        stack_cols.append(list(range(c, c + sw)))
+        c += sw
+
+    # For each block, compute all possible placements
+    block_choices = []
+
+    for b in range(B):
+        for s in range(S):
+            rows = band_rows[b]
+            cols = stack_cols[s]
+
+            block_cells = [(r, c) for r in rows for c in cols]
+
+            k = wb.data[rows[0]][cols[0]]  # block value from top-left
+
+            if k < 0 or k > len(block_cells):
+                return []  # impossible block → no matrices
+
+            choices = list(combinations(block_cells, k))
+            block_choices.append(choices)
+
+    # Cartesian product of all block choices
+    results = []
+
+    def backtrack(i, current):
+        if i == len(block_choices):
+            sm = SegmentedMatrix(wb.bandWidths[:], wb.stackWidths[:])
+            sm.data = [[0] * sm.width for _ in range(sm.height)]
+
+            for (r, c) in current:
+                sm.data[r][c] = 1
+
+            sm.sortPrefix = wb.sortPrefix[:]
+            sm.info = deepcopy(wb.info)
+            results.append(sm)
+            return
+
+        for choice in block_choices[i]:
+            backtrack(i + 1, current + list(choice))
+
+    backtrack(0, [])
+    return results
+
+
 
 from copy import deepcopy
-def all01CellRepresentatives(aClueCount: int):
+def allWeightedCellRepresentatives(aClueCount: int):
     wblist = allWeightedBlockRepresentatives(aClueCount)
     result = []
 
@@ -993,56 +1267,58 @@ def all01CellRepresentatives(aClueCount: int):
 
 
 
+def all01CellRepresentatives(aClueCount: int):
+    weighted = allWeightedCellRepresentatives(aClueCount)
+
+    all_binary = []
+
+    for wc in weighted:
+        bm_list=expand_weighted_matrix_to_binary(wc)
+        all_binary.extend(SegmentedMatrix.filterMaximalSegmentedMatrices(bm_list))
+
+    # Maxima bestimmen
+    maxima = SegmentedMatrix.filterMaximalSegmentedMatrices(all_binary)
+
+    for  bm in maxima:
+        bm.reduce()
+
+    # sortieren (sortId ist Property!)
+    maxima.sort(key=lambda m: m.sortId, reverse=True)
+
+    # neu nummerieren
+    for i, sm in enumerate(maxima, start=1):
+        sm.sortPrefix = [i]
+
+    return maxima
+
+def restrictedGrowthSequence(n: int):
+    """
+    Generate all restricted growth sequences (RGS) of length n.
+
+    A restricted growth sequence is a sequence a[0..n-1] such that:
+      - a[0] == 1
+      - a[i] <= 1 + max(a[0..i-1]) for all i >= 1
+    """
+    if n <= 0:
+        return []
+
+    result = []
+
+    def backtrack(seq, current_max):
+        if len(seq) == n:
+            result.append(seq[:])
+            return
+
+        # Next value can range from 1 to current_max + 1
+        for v in range(1, current_max + 2):
+            seq.append(v)
+            backtrack(seq, max(current_max, v))
+            seq.pop()
+
+    backtrack([1], 1)
+    return result
 
 
-
-# -------------------------
-# Example usage / quick test
-# -------------------------
-if __name__ == "__main__":
-    # create a classic segmented matrix with band/stack widths 3,3,3
-    sm = SegmentedMatrix([3, 3, 3], [3, 3, 3])
-    # fill a few values using box notation
-    sm[0][0][0][0] = 1
-    sm[0][0][0][1] = 2
-    sm[0][0][1][0] = 3
-    sm[0][0][1][2] = 4
-    print("Original:")
-    sm.print()
-
-    # read with row lists (shorter rows are padded)
-    rows = [
-        [1, 2, 0, 0, 0, 0, 0, 0, 0],
-        [3, 0, 4],  # will be padded to 9 cols
-        [],  # becomes zeros
-    ] + [[0] * 9 for _ in range(6)]  # rest rows
-    sm.read(rows)
-    print("\nAfter read(rows):")
-    sm.print()
-
-    # reduce (should remove nothing here)
-    sm.reduce()
-    print("\nAfter reduce():")
-    sm.print()
-
-    # expand small example: a 1x1 block matrix
-    bm = BinaryBoxMatrix()
-    bm[0][0][0][0] = 1
-    bm[2][2][0][0] = 1
-    print("\nBinaryBoxMatrix before expand:")
-    bm.print()
-    bm.expand()
-    print("\nBinaryBoxMatrix after expand():")
-    bm.print()
-
-    # toptimize example (will produce canonical representative)
-    sm2 = SegmentedMatrix([1, 1, 1], [1, 1, 1])
-    sm2.read([[9], [1], [2]])
-    print("\nBefore toptimize (sm2):")
-    sm2.print()
-    best = sm2.toptimize()
-    print("\nAfter toptimize (best):")
-    best.print()
 
 
 
@@ -1050,7 +1326,7 @@ if __name__ == "__main__":
 # Example usage (small demonstration)
 # ----------------------
 if __name__ == "__main__":
-    nclues=5
+    nclues=4
     print()
     print("All Representatives for", nclues, " clues")
     #for nr, m in enumerate(allWeightedBlockRepresentatives(nclues)):
@@ -1058,14 +1334,7 @@ if __name__ == "__main__":
     for nr, m in enumerate(all01CellRepresentatives(nclues)):
         print()
         print(nr)
-        #print(m.sortId)
-        #print(m.sortPrefix)
+        print(m.sortId)
+        print(m.sortPrefix)
         m.print()
-
-
-
-
-# Run the regression test
-# test_clone()
-
 
