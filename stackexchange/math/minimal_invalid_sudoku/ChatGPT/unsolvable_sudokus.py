@@ -1328,7 +1328,7 @@ def restrictedGrowthSequence(n: int):
 if __name__ == "__main__":
     nclues=4
     print()
-    print("All Representatives for", nclues, " clues")
+    print("all01CellRepresentatives(nclues")
     #for nr, m in enumerate(allWeightedBlockRepresentatives(nclues)):
     #for nr, m in enumerate(all01BlockRepresentatives(nclues)):
     for nr, m in enumerate(all01CellRepresentatives(nclues)):
@@ -1337,4 +1337,39 @@ if __name__ == "__main__":
         print(m.sortId)
         print(m.sortPrefix)
         m.print()
+
+    from contextlib import redirect_stdout
+    #with open('C:\Users\guent\OneDrive\work\python\out.txt', 'w') as f:
+    with open('C:\\Users\\guent\\OneDrive\\work\\python\\out.txt', 'w') as f:
+        for nclues in (2,3,4,5):
+            with redirect_stdout(f):
+                print('nClues =', nclues)
+                print()
+                print('all01BlockRepresentatives')
+                print()
+                for nr, m in enumerate(all01BlockRepresentatives(nclues)):
+                    print(nr)
+                    m.print()
+                    print()
+                print('allWeightedBlockRepresentatives')
+                print()
+                for nr, m in enumerate(allWeightedBlockRepresentatives(nclues)):
+                    print(nr)
+                    m.print()
+                    print()
+                print('allWeightedCellRepresentatives')
+                print()
+                for nr, m in enumerate(allWeightedCellRepresentatives(nclues)):
+                    print(nr)
+                    m.print()
+                    print()
+                print('all01CellRepresentatives')
+                print()
+                for nr, m in enumerate(all01CellRepresentatives(nclues)):
+                    print(nr)
+                    m.print()
+                    print()
+
+
+
 
