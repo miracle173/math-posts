@@ -530,8 +530,10 @@ class SegmentedMatrix:
     # -------------------------
     # Maximal elements under group action
     # -------------------------
-    @staticmethod
-    def filterMaximalSegmentedMatrices(matrices):
+
+    # 2025-12-14 19:06 begin
+    @classmethod
+    def filterMaximalSegmentedMatrices(cls, matrices):
         """
         Entfernt alle SegmentedMatrices, aus denen sich mit den zulässigen
         Gruppenoperationen noch Matrizen mit größerer sortId erzeugen lassen.
@@ -576,7 +578,278 @@ class SegmentedMatrix:
             allMaxima.update(currentMaxima)
 
         return list(allMaxima.values())
+    # 2025-12-14 19:06 end
 
+
+    # 2025-12-14 19:27 begin
+    @classmethod
+    def all01BlockRepresentatives(cls, clueCount: int):
+        """
+        Generate canonical representatives of 3×3 0/1 SegmentedMatrices
+        for all k = 1..clueCount, based on toptimize().
+        Each representative gets sortPrefix = [k].
+        """
+
+        result = {}  # dict: sortId → SegmentedMatrix
+        positions = list(range(9))  # 3x3 grid positions
+
+        for k in range(1, clueCount + 1):
+
+            for ones in combinations(positions, k):
+
+                # Create empty 3x3 SegmentedMatrix
+                m = cls([1,1,1], [1,1,1])
+                m.data = [[0]*3 for _ in range(3)]
+
+                # Insert the 1s
+                for p in ones:
+                    r = p // 3
+                    c = p % 3
+                    m.data[r][c] = 1
+
+                # Optimize under symmetries
+                opt = m.toptimize()
+
+                # MUST set prefix BEFORE getting sortId
+                opt.sortPrefix = [k]
+
+                # Now compute canonical ID including prefix
+                sid = opt.sortId
+
+                # If this representative has not yet been seen:
+                if sid not in result:
+                    result[sid] = opt.clone()
+
+        # result: dict mapping sortId -> SegmentedMatrix
+        # We build a new dict `filtered_result` with only the survivors.
+
+        filtered_result = {}
+
+        for sid, sm in result.items():
+            # Keep original sortId for comparison (tuple)
+            original_id = sid
+
+            # Compute rotated + optimized representative
+            rotated = sm.clone()
+            rotated.rotate()
+            opt_rot = rotated.toptimize()
+
+            # If opt_rot has a strictly larger sortId, discard the original entry
+            if opt_rot.sortId > original_id:
+                # discard: do not add to filtered_result
+                continue
+
+            # Otherwise keep the original entry
+            # (use the stored matrix; ensure we store a clone to avoid aliasing)
+            filtered_result[original_id] = sm.clone()
+
+        # Replace result dict with filtered_result
+        result = filtered_result
+
+        result_list = [result[key] for key in sorted(result.keys())]
+
+        # Jede Matrix zuerst reduzieren
+        for sm in result_list:
+            sm.reduce()
+
+        # Neue sortPrefix-Nummerierung
+        for i, sm in enumerate(result_list, start=1):
+            sm.sortPrefix = [i]
+
+        return result_list
+    # 2025-12-14 19:27 end
+
+
+    # 2025-12-14 19:27 begin
+    @classmethod
+    def allWeightedBlockRepresentatives(cls, clueCount: int):
+        """
+        Erweiterte Version:
+        - erzeugt gewichtete Matrizen basierend auf all01BlockRepresentatives
+        - reduziert alle Matrizen
+        - filtert:
+            A: toptimize(M) > M  -> entferne M
+            B: toptimize(rotate(M)) > M -> entferne M
+        - sortiert das Ergebnis absteigend nach sortId
+        """
+        from itertools import product
+
+        bases = cls.all01BlockRepresentatives(clueCount)
+        results = []
+
+        for base in bases:
+            # Anzahl der Einsen in der Basis-Matrix
+            one_positions = [(r, c) for r, row in enumerate(base.data)
+                                      for c, v in enumerate(row) if v == 1]
+            k = len(one_positions)
+            if k == 0:
+                continue
+
+            # Partitionen von clueCount in k Summanden
+            parts = allPartitions(clueCount, k)
+
+            # SortId der Basismatrix → wird sortPrefix
+            base_sortKey = base.sortId
+
+            for P in parts:
+                sm = base.clone()
+                sm.info = {"partition": P}
+                sm.sortPrefix = list(base_sortKey)
+
+                # Alles auf 0 setzen
+                for r in range(len(sm.data)):
+                    for c in range(len(sm.data[0])):
+                        sm.data[r][c] = 0
+
+                # Einsen durch Gewichte ersetzen
+                for (r, c), weight in zip(one_positions, P):
+                    sm.data[r][c] = weight
+
+                # Reduzieren (wichtig!)
+                sm.reduce()
+
+                results.append(sm)
+
+        # ------------------------------------------
+        # Filterphase
+        # ------------------------------------------
+
+        filtered = []
+        for sm in results:
+            orig_id = sm.sortId
+
+            # Bedingung A: toptimize(M) größer als M?
+            topo = sm.toptimize()
+            if topo.sortId > orig_id:
+                continue
+
+            # Bedingung B: rotate(M).toptimize() größer als M?
+            rot = sm.clone()
+            rot.rotate()
+            rot_opt = rot.toptimize()
+
+            if rot_opt.sortId > orig_id:
+                continue
+
+            filtered.append(sm)
+
+        # Sortieren nach sortId absteigend
+        filtered.sort(key=lambda sm: sm.sortId, reverse=True)
+
+        # Neue sortPrefix-Nummerierung für gewichtete Matrizen
+        for i, sm in enumerate(filtered, start=1):
+            sm.sortPrefix = [i]
+
+        return filtered
+    # 2025-12-14 19:27 end
+
+
+    # 2025-12-14 19:06 begin
+    @classmethod
+    def all01CellRepresentatives(cls, aClueCount: int):
+        weighted = cls.allWeightedCellRepresentatives(aClueCount)
+
+        all_binary = []
+
+        for wc in weighted:
+            bm_list = expand_weighted_matrix_to_binary(wc)
+            all_binary.extend(cls.filterMaximalSegmentedMatrices(bm_list))
+
+        # Maxima bestimmen
+        maxima = cls.filterMaximalSegmentedMatrices(all_binary)
+
+        for bm in maxima:
+            bm.reduce()
+
+        # sortieren (sortId ist Property!)
+        maxima.sort(key=lambda m: m.sortId, reverse=True)
+
+        # neu nummerieren
+        for i, sm in enumerate(maxima, start=1):
+            sm.sortPrefix = [i]
+
+        return maxima
+    # 2025-12-14 19:06 end
+
+    @classmethod
+    def allWeightedCellRepresentatives(cls, aClueCount: int):
+        wblist = cls.allWeightedBlockRepresentatives(aClueCount)
+        result = []
+
+        for wb in wblist:
+            # Anzahl der Bänder und Stacks des wb
+            B = len(wb.bandWidths)
+            S = len(wb.stackWidths)
+
+            # --- 1) neue bandWidths bestimmen ---
+            new_bw = []
+            row_start = 0
+            for b in range(B):
+                bw = wb.bandWidths[b]
+                rows = range(row_start, row_start + bw)
+
+                # Summe aller Werte in diesem Band
+                total = 0
+                for r in rows:
+                    total += sum(wb.data[r])
+
+                new_bw.append(min(total, 3))
+                row_start += bw
+
+            # --- 2) neue stackWidths bestimmen ---
+            new_sw = []
+            col_start = 0
+            for s in range(S):
+                sw = wb.stackWidths[s]
+                cols = range(col_start, col_start + sw)
+
+                # Summe aller Werte in diesem Stack
+                total = 0
+                for r in range(len(wb.data)):
+                    for c in cols:
+                        total += wb.data[r][c]
+
+                new_sw.append(min(total, 3))
+                col_start += sw
+
+            # Falls alles 0 => überspringen
+            if sum(new_bw) == 0 or sum(new_sw) == 0:
+                continue
+
+            # --- 3) neue Matrix anlegen ---
+            sm = SegmentedMatrix(new_bw, new_sw)
+
+            # --- 4) Blockwerte setzen ---
+            row_start = 0
+            for b in range(B):
+                bw = wb.bandWidths[b]
+                band_rows = range(row_start, row_start + bw)
+
+                col_start = 0
+                for s in range(S):
+                    sw = wb.stackWidths[s]
+                    stack_cols = range(col_start, col_start + sw)
+
+                    # Summiere Blockwert = Summe des Blocks, gekappt auf 1 Zelle
+                    val = 0
+                    for r in band_rows:
+                        for c in stack_cols:
+                            val += wb.data[r][c]
+
+                    # In Zielmatrix Block setzen (nur oben links)
+                    if new_bw[b] > 0 and new_sw[s] > 0:
+                        sm[b][s][0][0] = val
+
+                    col_start += sw
+                row_start += bw
+
+            # SortPrefix & info kopieren
+            sm.sortPrefix = wb.sortPrefix[:]
+            sm.info = wb.info
+
+            result.append(sm)
+
+        return result
     
 
     # -------------------------
@@ -876,83 +1149,6 @@ def test_clone():
 
 
 
-def all01BlockRepresentatives(clueCount: int):
-    """
-    Generate canonical representatives of 3×3 0/1 SegmentedMatrices
-    for all k = 1..clueCount, based on toptimize().
-    Each representative gets sortPrefix = [k].
-    """
-
-    result = {}  # dict: sortId → SegmentedMatrix
-    positions = list(range(9))  # 3x3 grid positions
-
-    for k in range(1, clueCount + 1):
-
-        for ones in combinations(positions, k):
-
-            # Create empty 3x3 SegmentedMatrix
-            m = SegmentedMatrix([1,1,1], [1,1,1])
-            m.data = [[0]*3 for _ in range(3)]
-
-            # Insert the 1s
-            for p in ones:
-                r = p // 3
-                c = p % 3
-                m.data[r][c] = 1
-
-            # Optimize under symmetries
-            opt = m.toptimize()
-
-            # MUST set prefix BEFORE getting sortId
-            opt.sortPrefix = [k]
-
-            # Now compute canonical ID including prefix
-            sid = opt.sortId
-
-            # If this representative has not yet been seen:
-            if sid not in result:
-                result[sid] = opt.clone()
-
-    # result: dict mapping sortId -> SegmentedMatrix
-    # We build a new dict `filtered_result` with only the survivors.
-
-    filtered_result = {}
-
-    for sid, sm in result.items():
-        # Keep original sortId for comparison (tuple)
-        original_id = sid
-
-        # Compute rotated + optimized representative
-        rotated = sm.clone()
-        rotated.rotate()
-        opt_rot = rotated.toptimize()
-
-        # If opt_rot has a strictly larger sortId, discard the original entry
-        if opt_rot.sortId > original_id:
-            # discard: do not add to filtered_result
-            continue
-
-        # Otherwise keep the original entry
-        # (use the stored matrix; ensure we store a clone to avoid aliasing)
-        filtered_result[original_id] = sm.clone()
-
-    # Replace result dict with filtered_result
-    result = filtered_result
-                
-
-    result_list = [result[key] for key in sorted(result.keys())]
-
-    # Jede Matrix zuerst reduzieren
-    for sm in result_list:
-        sm.reduce()
-
-    # Neue sortPrefix-Nummerierung
-    for i, sm in enumerate(result_list, start=1):
-        sm.sortPrefix = [i]
-
-    return result_list
-
-
 def allPartitions(aSum: int, aCount: int):
     """
     Return all ordered partitions (compositions) of aSum into aCount
@@ -989,87 +1185,6 @@ def allPartitions(aSum: int, aCount: int):
 from typing import List
 
 
-def allWeightedBlockRepresentatives(clueCount: int):
-    """
-    Erweiterte Version:
-    - erzeugt gewichtete Matrizen basierend auf all01BlockRepresentatives
-    - reduziert alle Matrizen
-    - filtert:
-        A: toptimize(M) > M  -> entferne M
-        B: toptimize(rotate(M)) > M -> entferne M
-    - sortiert das Ergebnis absteigend nach sortId
-    """
-    from itertools import product
-
-    bases = all01BlockRepresentatives(clueCount)
-    results = []
-
-    for base in bases:
-        # Anzahl der Einsen in der Basis-Matrix
-        one_positions = [(r, c) for r, row in enumerate(base.data)
-                                  for c, v in enumerate(row) if v == 1]
-        k = len(one_positions)
-        if k == 0:
-            continue
-
-        # Partitionen von clueCount in k Summanden
-        parts = allPartitions(clueCount, k)
-
-        # SortId der Basismatrix → wird sortPrefix
-        base_sortKey = base.sortId
-
-        for P in parts:
-            sm = base.clone()
-            sm.info = {"partition": P}
-            sm.sortPrefix = list(base_sortKey)
-
-            # Alles auf 0 setzen
-            for r in range(len(sm.data)):
-                for c in range(len(sm.data[0])):
-                    sm.data[r][c] = 0
-
-            # Einsen durch Gewichte ersetzen
-            for (r, c), weight in zip(one_positions, P):
-                sm.data[r][c] = weight
-
-            # Reduzieren (wichtig!)
-            sm.reduce()
-
-            results.append(sm)
-
-            
-
-    # ------------------------------------------
-    # Filterphase
-    # ------------------------------------------
-
-    filtered = []
-    for sm in results:
-        orig_id = sm.sortId
-
-        # Bedingung A: toptimize(M) größer als M?
-        topo = sm.toptimize()
-        if topo.sortId > orig_id:
-            continue
-
-        # Bedingung B: rotate(M).toptimize() größer als M?
-        rot = sm.clone()
-        rot.rotate()
-        rot_opt = rot.toptimize()
-
-        if rot_opt.sortId > orig_id:
-            continue
-
-        filtered.append(sm)
-
-    # Sortieren nach sortId absteigend
-    filtered.sort(key=lambda sm: sm.sortId, reverse=True)
-
-    # Neue sortPrefix-Nummerierung für gewichtete Matrizen
-    for i, sm in enumerate(filtered, start=1):
-        sm.sortPrefix = [i]
-
-    return filtered
 
 
 
@@ -1185,111 +1300,10 @@ def expand_weighted_matrix_to_binary(wb: SegmentedMatrix):
 
 
 from copy import deepcopy
-def allWeightedCellRepresentatives(aClueCount: int):
-    wblist = allWeightedBlockRepresentatives(aClueCount)
-    result = []
-
-    for wb in wblist:
-        # Anzahl der Bänder und Stacks des wb
-        B = len(wb.bandWidths)
-        S = len(wb.stackWidths)
-
-        # --- 1) neue bandWidths bestimmen ---
-        new_bw = []
-        row_start = 0
-        for b in range(B):
-            bw = wb.bandWidths[b]
-            rows = range(row_start, row_start + bw)
-
-            # Summe aller Werte in diesem Band
-            total = 0
-            for r in rows:
-                total += sum(wb.data[r])
-
-            new_bw.append(min(total, 3))
-            row_start += bw
-
-        # --- 2) neue stackWidths bestimmen ---
-        new_sw = []
-        col_start = 0
-        for s in range(S):
-            sw = wb.stackWidths[s]
-            cols = range(col_start, col_start + sw)
-
-            # Summe aller Werte in diesem Stack
-            total = 0
-            for r in range(len(wb.data)):
-                for c in cols:
-                    total += wb.data[r][c]
-
-            new_sw.append(min(total, 3))
-            col_start += sw
-
-        # Falls alles 0 => überspringen
-        if sum(new_bw) == 0 or sum(new_sw) == 0:
-            continue
-
-        # --- 3) neue Matrix anlegen ---
-        sm = SegmentedMatrix(new_bw, new_sw)
-
-        # --- 4) Blockwerte setzen ---
-        row_start = 0
-        for b in range(B):
-            bw = wb.bandWidths[b]
-            band_rows = range(row_start, row_start + bw)
-
-            col_start = 0
-            for s in range(S):
-                sw = wb.stackWidths[s]
-                stack_cols = range(col_start, col_start + sw)
-
-                # Summiere Blockwert = Summe des Blocks, gekappt auf 1 Zelle
-                val = 0
-                for r in band_rows:
-                    for c in stack_cols:
-                        val += wb.data[r][c]
-
-                # In Zielmatrix Block setzen (nur oben links)
-                if new_bw[b] > 0 and new_sw[s] > 0:
-                    sm[b][s][0][0] = val
-
-                col_start += sw
-            row_start += bw
-
-        # SortPrefix & info kopieren
-        sm.sortPrefix = wb.sortPrefix[:]
-        sm.info = wb.info
-
-        result.append(sm)
-
-    return result
 
 
 
 
-def all01CellRepresentatives(aClueCount: int):
-    weighted = allWeightedCellRepresentatives(aClueCount)
-
-    all_binary = []
-
-    for wc in weighted:
-        bm_list=expand_weighted_matrix_to_binary(wc)
-        all_binary.extend(SegmentedMatrix.filterMaximalSegmentedMatrices(bm_list))
-
-    # Maxima bestimmen
-    maxima = SegmentedMatrix.filterMaximalSegmentedMatrices(all_binary)
-
-    for  bm in maxima:
-        bm.reduce()
-
-    # sortieren (sortId ist Property!)
-    maxima.sort(key=lambda m: m.sortId, reverse=True)
-
-    # neu nummerieren
-    for i, sm in enumerate(maxima, start=1):
-        sm.sortPrefix = [i]
-
-    return maxima
 
 def restrictedGrowthSequence(n: int):
     """
@@ -1326,20 +1340,24 @@ def restrictedGrowthSequence(n: int):
 # Example usage (small demonstration)
 # ----------------------
 if __name__ == "__main__":
+
+    pass
+
+    """
     nclues=4
     print()
     print("all01CellRepresentatives(nclues")
     #for nr, m in enumerate(allWeightedBlockRepresentatives(nclues)):
     #for nr, m in enumerate(all01BlockRepresentatives(nclues)):
-    for nr, m in enumerate(all01CellRepresentatives(nclues)):
+    for nr, m in enumerate(SegmentedMatrix.all01CellRepresentatives(nclues)):
         print()
         print(nr)
         print(m.sortId)
         print(m.sortPrefix)
         m.print()
 
+
     from contextlib import redirect_stdout
-    #with open('C:\Users\guent\OneDrive\work\python\out.txt', 'w') as f:
     with open('C:\\Users\\guent\\OneDrive\\work\\python\\out.txt', 'w') as f:
         for nclues in (2,3,4,5):
             with redirect_stdout(f):
@@ -1347,29 +1365,51 @@ if __name__ == "__main__":
                 print()
                 print('all01BlockRepresentatives')
                 print()
-                for nr, m in enumerate(all01BlockRepresentatives(nclues)):
+                for nr, m in enumerate(SegmentedMatrix.all01BlockRepresentatives(nclues)):
                     print(nr)
                     m.print()
                     print()
                 print('allWeightedBlockRepresentatives')
                 print()
-                for nr, m in enumerate(allWeightedBlockRepresentatives(nclues)):
+                for nr, m in enumerate(SegmentedMatrix.allWeightedBlockRepresentatives(nclues)):
                     print(nr)
                     m.print()
                     print()
                 print('allWeightedCellRepresentatives')
                 print()
-                for nr, m in enumerate(allWeightedCellRepresentatives(nclues)):
+                for nr, m in enumerate(SegmentedMatrix.allWeightedCellRepresentatives(nclues)):
                     print(nr)
                     m.print()
                     print()
                 print('all01CellRepresentatives')
                 print()
-                for nr, m in enumerate(all01CellRepresentatives(nclues)):
+                for nr, m in enumerate(SegmentedMatrix.all01CellRepresentatives(nclues)):
                     print(nr)
                     m.print()
                     print()
+    """
+    """
+        10|00
+        01|00
+        --+--
+        00|11
+        01|00
+    """
+    sm=SegmentedMatrix([2,2],[2,2])
+    sm.read([[1,0,0,0],[0,1,0,0],[0,0,1,1],[0,1,0,0]])
+    print("Matrix")
+    sm.print()
+    print("Opetimum")
+    sm.toptimize().print()
+    print("Matrix")
+    sm.print()
+    print("Opetimum")
+    for _ in SegmentedMatrix.filterMaximalSegmentedMatrices([sm]):
+        _.print()
+    
 
+
+        
 
 
 
