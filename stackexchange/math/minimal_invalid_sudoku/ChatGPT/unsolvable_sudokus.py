@@ -532,6 +532,7 @@ class SegmentedMatrix:
     # -------------------------
 
     # 2025-12-14 19:06 begin
+    # 2025-12-14 20:05 begin
     @classmethod
     def filterMaximalSegmentedMatrices(cls, matrices):
         """
@@ -571,14 +572,20 @@ class SegmentedMatrix:
                 # Nachbarn über Erzeugendensystem
                 for nb in sm.generate_neighbors():
                     nb_sid = nb.sortId
-                    if nb_sid in unknown:
-                        open_set[nb_sid] = unknown.pop(nb_sid)
+
+                    # >>> EINZIGE KORREKTUR BEGINN <<<
+                    if nb_sid not in visited and nb_sid not in open_set:
+                        if nb_sid in unknown:
+                            open_set[nb_sid] = unknown.pop(nb_sid)
+                        else:
+                            open_set[nb_sid] = nb
+                    # >>> EINZIGE KORREKTUR ENDE <<<
 
             # Aktuelle Maxima sichern
             allMaxima.update(currentMaxima)
 
         return list(allMaxima.values())
-    # 2025-12-14 19:06 end
+    # 2025-12-14 20:05 end
 
 
     # 2025-12-14 19:27 begin
@@ -744,33 +751,6 @@ class SegmentedMatrix:
     # 2025-12-14 19:27 end
 
 
-    # 2025-12-14 19:06 begin
-    @classmethod
-    def all01CellRepresentatives(cls, aClueCount: int):
-        weighted = cls.allWeightedCellRepresentatives(aClueCount)
-
-        all_binary = []
-
-        for wc in weighted:
-            bm_list = expand_weighted_matrix_to_binary(wc)
-            all_binary.extend(cls.filterMaximalSegmentedMatrices(bm_list))
-
-        # Maxima bestimmen
-        maxima = cls.filterMaximalSegmentedMatrices(all_binary)
-
-        for bm in maxima:
-            bm.reduce()
-
-        # sortieren (sortId ist Property!)
-        maxima.sort(key=lambda m: m.sortId, reverse=True)
-
-        # neu nummerieren
-        for i, sm in enumerate(maxima, start=1):
-            sm.sortPrefix = [i]
-
-        return maxima
-    # 2025-12-14 19:06 end
-
     @classmethod
     def allWeightedCellRepresentatives(cls, aClueCount: int):
         wblist = cls.allWeightedBlockRepresentatives(aClueCount)
@@ -851,6 +831,95 @@ class SegmentedMatrix:
 
         return result
     
+
+
+    # 2025-12-14 19:06 begin
+    @classmethod
+    def all01CellRepresentatives(cls, aClueCount: int):
+        weighted = cls.allWeightedCellRepresentatives(aClueCount)
+
+        all_binary = []
+
+        for wc in weighted:
+            bm_list = expand_weighted_matrix_to_binary(wc)
+            all_binary.extend(cls.filterMaximalSegmentedMatrices(bm_list))
+
+        # Maxima bestimmen
+        maxima = cls.filterMaximalSegmentedMatrices(all_binary)
+
+        for bm in maxima:
+            bm.reduce()
+
+        # sortieren (sortId ist Property!)
+        maxima.sort(key=lambda m: m.sortId, reverse=True)
+
+        # neu nummerieren
+        for i, sm in enumerate(maxima, start=1):
+            sm.sortPrefix = [i]
+
+        return maxima
+    # 2025-12-14 19:06 end
+
+
+    # 2025-12-14 20:36 begin
+    @classmethod
+    def allSymbolRepresentatives(cls, nClues: int):
+        """
+        Erzeugt symbolische SegmentedMatrices aus 0-1-Zellrepräsentanten
+        unter Verwendung aller Restricted-Growth-Sequences der Länge nClues.
+        """
+
+        # 1) Alle Restricted Growth Sequences der Länge nClues
+        rgs_list = restrictedGrowthSequence(nClues)
+
+        # 2) Alle 0-1 Zellrepräsentanten
+        base_matrices = cls.all01CellRepresentatives(nClues)
+
+        collected = []
+
+        # 3) Für jede Basis-Matrix
+        for base in base_matrices:
+
+            # Positionen aller Einsen in Block-→Zeilen-→Spalten-Reihenfolge
+            one_positions = []
+
+            row_start = 0
+            for b, bw in enumerate(base.bandWidths):
+                col_start = 0
+                for s, sw in enumerate(base.stackWidths):
+
+                    for i in range(bw):
+                        for j in range(sw):
+                            if base[b][s][i][j] == 1:
+                                r = row_start + i
+                                c = col_start + j
+                                one_positions.append((r, c))
+
+                    col_start += sw
+                row_start += bw
+
+            # Anzahl der Einsen muss exakt passen
+            if len(one_positions) != nClues:
+                continue
+
+            # 4) Für jede Restricted Growth Sequence
+            for rgs in rgs_list:
+                sm = base.clone()
+
+                for (r, c), value in zip(one_positions, rgs):
+                    sm.data[r][c] = value
+
+                if not sm.isConsistent():
+                    continue
+
+                collected.append(sm)
+
+        # 5) Maxima bestimmen
+        maxima = cls.filterMaximalSegmentedMatrices(collected)
+
+        return maxima
+
+    # 2025-12-14 20:36 end
 
     # -------------------------
     # read(): fill rows (list of lists)
@@ -1343,7 +1412,6 @@ if __name__ == "__main__":
 
     pass
 
-    """
     nclues=4
     print()
     print("all01CellRepresentatives(nclues")
@@ -1357,9 +1425,14 @@ if __name__ == "__main__":
         m.print()
 
 
+    import time
+
+    # test case
+    maxNClues=5
     from contextlib import redirect_stdout
     with open('C:\\Users\\guent\\OneDrive\\work\\python\\out.txt', 'w') as f:
-        for nclues in (2,3,4,5):
+        startTime = time.time()
+        for nclues in list(range(2,maxNClues+1)):
             with redirect_stdout(f):
                 print('nClues =', nclues)
                 print()
@@ -1367,46 +1440,76 @@ if __name__ == "__main__":
                 print()
                 for nr, m in enumerate(SegmentedMatrix.all01BlockRepresentatives(nclues)):
                     print(nr)
+                    print(m.data,m.bandWidths,m.stackWidths)
                     m.print()
                     print()
                 print('allWeightedBlockRepresentatives')
                 print()
                 for nr, m in enumerate(SegmentedMatrix.allWeightedBlockRepresentatives(nclues)):
                     print(nr)
+                    print(m.data,m.bandWidths,m.stackWidths)
                     m.print()
                     print()
                 print('allWeightedCellRepresentatives')
                 print()
                 for nr, m in enumerate(SegmentedMatrix.allWeightedCellRepresentatives(nclues)):
                     print(nr)
+                    print(m.data,m.bandWidths,m.stackWidths)
                     m.print()
                     print()
                 print('all01CellRepresentatives')
                 print()
                 for nr, m in enumerate(SegmentedMatrix.all01CellRepresentatives(nclues)):
                     print(nr)
+                    print(m.data,m.bandWidths,m.stackWidths)
                     m.print()
                     print()
+                print('allSymbolRepresentatives')
+                print()
+                for nr, m in enumerate(SegmentedMatrix.allSymbolRepresentatives(nclues)):
+                    print(nr)
+                    print(m.data,m.bandWidths,m.stackWidths)
+                    m.print()
+                    print()
+        endTime = time.time()
+        print("time elapse:",endTime - startTime)
+
+
+
     """
-    """
+    # test case
+    '''
         10|00
         01|00
         --+--
         00|11
         01|00
-    """
+    '''
     sm=SegmentedMatrix([2,2],[2,2])
     sm.read([[1,0,0,0],[0,1,0,0],[0,0,1,1],[0,1,0,0]])
     print("Matrix")
     sm.print()
-    print("Opetimum")
+    print("Optimum")
     sm.toptimize().print()
     print("Matrix")
     sm.print()
-    print("Opetimum")
-    for _ in SegmentedMatrix.filterMaximalSegmentedMatrices([sm]):
-        _.print()
+    print("Optimum")
+    for myMatrix in SegmentedMatrix.filterMaximalSegmentedMatrices([sm]):
+        myMatrix.print()
     
+    """
+
+    """
+    # test case
+    sm=SegmentedMatrix([1, 1],[2, 1])
+    sm.read([[1, 0, 1], [0, 1, 0]])
+    print("Matrix")
+    sm.print()
+    print("Optimum")
+    for myMatrix in SegmentedMatrix.filterMaximalSegmentedMatrices([sm]):
+        myMatrix.print()
+    """
+
 
 
         
