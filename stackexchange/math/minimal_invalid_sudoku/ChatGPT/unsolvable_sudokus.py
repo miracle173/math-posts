@@ -1,7 +1,8 @@
 from copy import deepcopy
-from itertools import permutations
 from typing import List, Sequence, Tuple, Any
-from itertools import combinations
+from itertools import combinations, product, permutations
+import itertools
+
 
 
 
@@ -750,7 +751,6 @@ class SegmentedMatrix:
             B: toptimize(rotate(M)) > M -> entferne M
         - sortiert das Ergebnis absteigend nach sortId
         """
-        from itertools import product
 
         bases = cls.all01BlockRepresentatives(clueCount)
         results = []
@@ -1090,72 +1090,6 @@ class SegmentedMatrix:
                 row_ptr += 1
         print(top_line)
 
-    # -------------------------
-    # toptimize(): canonical minimal sortId under allowed permutations
-    # -------------------------
-    def toptimize(self) -> "SegmentedMatrix":
-        """
-        Return a deep-copy of a SegmentedMatrix that has the lexicographically smallest
-        sortId reachable via:
-          - any permutation of bands (band order)
-          - any permutation of stacks (stack order)
-          - any permutation of rows inside each band
-          - any permutation of columns inside each stack
-
-        The algorithm does an exhaustive search over the small permutation spaces
-        but uses independent optimization for rows/cols inside bands/stacks to prune.
-        This is exact (not heuristic) for the <=3 sizes.
-        """
-        # quick clones for manipulation
-        base = self.clone()
-
-        # 1) optimize rows within each band independently:
-        for b in range(len(base.bandWidths)):
-            bw = base.bandWidths[b]
-            best = None
-            best_id = None
-            for perm in permutations(range(bw)):
-                tmp = base.clone()
-                tmp.permuteRows(b, perm)
-                sid = tmp.sortId
-                if best_id is None or sid > best_id:
-                    best_id = sid
-                    best = tmp
-            base = best
-
-        # 2) optimize columns within each stack independently:
-        for s in range(len(base.stackWidths)):
-            sw = base.stackWidths[s]
-            best = None
-            best_id = None
-            for perm in permutations(range(sw)):
-                tmp = base.clone()
-                tmp.permuteCols(s, perm)
-                sid = tmp.sortId
-                if best_id is None or sid > best_id:
-                    best_id = sid
-                    best = tmp
-            base = best
-
-        # 3) try band permutations (full)
-        best = None
-        best_id = None
-        for perm_b in permutations(range(len(base.bandWidths))):
-            tmp_b = base.clone()
-            tmp_b.permuteBands(perm_b)
-            # for each such, we will consider stack permutations next
-            # 4) try stack permutations (full)
-            for perm_s in permutations(range(len(base.stackWidths))):
-                tmp = tmp_b.clone()
-                tmp.permuteStacks(perm_s)
-                sid = tmp.sortId
-                if best_id is None or sid > best_id:
-                    best_id = sid
-                    best = tmp
-        # best contains the minimal one
-        return best.clone() if best is not None else self.clone()
-
-
 # -------------------------
 # Accessor helper classes to allow m[b][s][r][c] and m[b][s][r][c] = v
 # -------------------------
@@ -1196,110 +1130,6 @@ class _RowAccessor:
         self._m.data[global_r][global_c] = value
 
 
-# -------------------------
-# BinaryBoxMatrix (derived)
-# -------------------------
-class BinaryBoxMatrix(SegmentedMatrix):
-    """
-    BinaryBoxMatrix is a 3×3 block matrix where each box is 1×1 by default.
-    Defaults: bandWidths=[1,1,1], stackWidths=[1,1,1]
-    """
-
-    def __init__(self):
-        super().__init__([1, 1, 1], [1, 1, 1])
-
-    @property
-    def sortId(self) -> Tuple:
-        """
-        sortId: [count_nonzero, flattened_list_up_to_last_nonzero]
-        Represented as (count_nonzero, flattened_tuple...) for lexicographic comparisons.
-        """
-        flat = [v for row in self.data for v in row]
-        nonzero_count = sum(1 for v in flat if v != 0)
-        last_idx = -1
-        for i, v in enumerate(flat):
-            if v != 0:
-                last_idx = i
-        if last_idx == -1:
-            trimmed = ()
-        else:
-            trimmed = tuple(flat[: last_idx + 1])
-        return (nonzero_count,) + trimmed
-
-
-def test_clone():
-    """
-    Regression test for SegmentedMatrix.clone()
-    Tests multiple object states including:
-    - default empty matrix
-    - non-empty data
-    - sortPrefix set
-    - info set
-    Ensures clone is a deep copy and changes to the clone do not affect the original.
-    """
-    print("Running clone() regression tests...")
-
-    from copy import deepcopy
-
-    # 1) Default empty matrix
-    sm1 = SegmentedMatrix([1,1,1], [1,1,1])
-    c1 = sm1.clone()
-    assert c1.data == sm1.data
-    assert c1.sortPrefix == sm1.sortPrefix
-    assert c1.info == sm1.info
-    assert c1 is not sm1
-    print("Test 1 passed: empty matrix clone")
-
-    # 2) Non-empty data
-    sm2 = SegmentedMatrix([1,1,1], [1,1,1])
-    sm2.data[0][0] = 1
-    c2 = sm2.clone()
-    assert c2.data[0][0] == 1
-    c2.data[0][0] = 9
-    assert sm2.data[0][0] == 1  # ensure deep copy
-    print("Test 2 passed: data deep copy")
-
-    # 3) sortPrefix set
-    sm3 = SegmentedMatrix([1,1,1], [1,1,1])
-    sm3.sortPrefix = [3]
-    c3 = sm3.clone()
-    assert c3.sortPrefix == [3]
-    c3.sortPrefix[0] = 9
-    assert sm3.sortPrefix == [3]  # ensure deep copy
-    print("Test 3 passed: sortPrefix deep copy")
-
-    # 4) info set
-    sm4 = SegmentedMatrix([1,1,1], [1,1,1])
-    sm4.info = {"note": "test", "list": [1,2,3]}
-    c4 = sm4.clone()
-    assert c4.info == sm4.info
-    c4.info["list"][0] = 99
-    assert sm4.info["list"][0] == 1  # ensure deep copy
-    print("Test 4 passed: info deep copy")
-
-    # 5) Combination
-    sm5 = SegmentedMatrix([1,1,1], [1,1,1])
-    sm5.data[0][1] = 2
-    sm5.sortPrefix = [5]
-    sm5.info = {"note": "combo", "values": [4,5]}
-    c5 = sm5.clone()
-    assert c5.data[0][1] == 2
-    assert c5.sortPrefix == [5]
-    assert c5.info == sm5.info
-    c5.data[0][1] = 0
-    c5.sortPrefix[0] = 0
-    c5.info["values"][0] = 0
-    # original unchanged
-    assert sm5.data[0][1] == 2
-    assert sm5.sortPrefix[0] == 5
-    assert sm5.info["values"][0] == 4
-    print("Test 5 passed: combination deep copy")
-
-    print("All clone() regression tests passed successfully!")
-
-
-
-
 
 def allPartitions(aSum: int, aCount: int):
     """
@@ -1334,7 +1164,6 @@ def allPartitions(aSum: int, aCount: int):
     return results
 
 
-from typing import List
 
 
 
@@ -1343,14 +1172,13 @@ from typing import List
 ##############################################################
 
 
-import itertools
 
 def binary_blocks(h, w, k):
     """
     Erzeugt alle h×w-0-1-Matrizen mit genau k Einsen
     """
     n = h * w
-    for ones in itertools.combinations(range(n), k):
+    for ones in combinations(range(n), k):
         block = [[0]*w for _ in range(h)]
         for idx in ones:
             r = idx // w
@@ -1361,7 +1189,6 @@ def binary_blocks(h, w, k):
 
 
 
-from itertools import combinations
 
 def all_binary_blocks(height, width, ones):
     """
@@ -1382,8 +1209,6 @@ def all_binary_blocks(height, width, ones):
     return blocks
 
 
-from itertools import product
-from copy import deepcopy
 
 def expand_weighted_matrix_to_binary(wb: SegmentedMatrix):
     """
@@ -1451,7 +1276,7 @@ def expand_weighted_matrix_to_binary(wb: SegmentedMatrix):
 
 
 
-from copy import deepcopy
+
 
 
 
@@ -1492,6 +1317,9 @@ def restrictedGrowthSequence(n: int):
 # Example usage (small demonstration)
 # ----------------------
 if __name__ == "__main__":
+    import time
+    from contextlib import redirect_stdout
+
 
     pass
 
@@ -1508,12 +1336,11 @@ if __name__ == "__main__":
         m.print()
 
 
-    import time
+    
 
     """
     # test case
     maxNClues=3
-    from contextlib import redirect_stdout
     with open('C:\\Users\\guent\\OneDrive\\work\\python\\out.txt', 'w') as f:
         startTime = time.time()
         with redirect_stdout(f):
@@ -1607,7 +1434,6 @@ if __name__ == "__main__":
     maxNClues=4
     
     minNClues=2
-    from contextlib import redirect_stdout
     with open('C:\\Users\\guent\\OneDrive\\work\\python\\out.txt', 'w') as f:
         startTime_all = time.time()
         with redirect_stdout(f):
@@ -1634,5 +1460,6 @@ if __name__ == "__main__":
                     print()
         endTime_all = time.time()
         print("time elapse:",endTime_all - startTime_all)
-        
+    
+
 
