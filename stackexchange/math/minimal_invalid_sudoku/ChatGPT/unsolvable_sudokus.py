@@ -18,6 +18,12 @@ class SegmentedMatrix:
       m[bandIndex][stackIndex][rowIndex][colIndex]
     """
 
+    # class variables
+    cntRotate=0
+    cntBandStackPermute=0
+    cntRowColPermute=0
+    cntSymbolPermute=0
+
     # -------------------------
     # Constructor / basic API
     # -------------------------
@@ -42,6 +48,21 @@ class SegmentedMatrix:
         self.data: List[List[int]] = [[0] * cols for _ in range(rows)]
         self._sortPrefix = []  # writable list, initially empty
         self.info = None   # free-form metadata
+
+    @classmethod
+    def resetPermutationCounters(cls):
+        cls.cntRotate=0
+        cls.cntBandStackPermute=0
+        cls.cntRowColPermute=0
+        cls.cntSymbolPermute=0
+
+    @classmethod
+    def printPermutationCounters(cls):
+        print("cntRotate =", cls.cntRotate)
+        print("cntBandStackPermute =", cls.cntBandStackPermute)
+        print("cntRowColPermute =", cls.cntRowColPermute)
+        print("cntSymbolPermute =", cls.cntSymbolPermute)
+
 
     # -------------------------
     # Properties
@@ -76,41 +97,74 @@ class SegmentedMatrix:
             raise TypeError("sortPrefix must be a list")
         self._sortPrefix = value
 
+    # 2025-12-16 22:18 begin
     @property
     def sortId(self):
         """
-        sortId = (tuple(sortPrefix), tuple(flattened_by_band_and_stack))
+        sortId = [*sortPrefix, 81 Zellen]
 
-        Flattening rule:
-        For each band (top to bottom):
-            For each stack (left to right):
-                For each row inside the band:
-                    Append the cells belonging to that stack segment.
+        Interpretation als 9x9 SegmentedMatrix mit
+          bandWidths  = [3,3,3]
+          stackWidths = [3,3,3]
+
+        Ausgabereihenfolge:
+          Band →
+            Stack →
+              Zeilen des Blocks →
+                Spalten des Blocks
+
+        Auffüllen:
+          - fehlende Zeilen: unten IM SELBEN Band
+          - fehlende Spalten: rechts IM SELBEN Stack
+          - fehlende Bands: 3 Nullzeilen
+          - fehlende Stacks: 3 Nullspalten
         """
-        prefix = tuple(self.sortPrefix)
 
-        flat = []
+        cells = []
 
-        row_start = 0
-        for b_width in self.bandWidths:
-            # rows belonging to this band: row_start .. row_start + b_width - 1
-            band_rows = range(row_start, row_start + b_width)
+        B = len(self.bandWidths)
+        S = len(self.stackWidths)
 
-            col_start = 0
-            for s_width in self.stackWidths:
-                # columns belonging to this stack: col_start .. col_start + s_width - 1
-                stack_cols = range(col_start, col_start + s_width)
+        band_row_offset = 0
 
-                # append block contents row-wise
-                for r in band_rows:
-                    for c in stack_cols:
-                        flat.append(self.data[r][c])
+        # --- Bands ---
+        for bi in range(3):
+            bw = self.bandWidths[bi] if bi < B else 0
 
-                col_start += s_width
+            stack_col_offset = 0
 
-            row_start += b_width
+            # --- Stacks ---
+            for sj in range(3):
+                sw = self.stackWidths[sj] if sj < S else 0
 
-        return (prefix, tuple(flat))
+                # --- Zeilen im Block ---
+                for r in range(3):
+                    real_row = (r < bw)
+
+                    if real_row and bi < B:
+                        row = self.data[band_row_offset + r]
+                    else:
+                        row = None  # Nullzeile im Block
+
+                    # --- Spalten im Block ---
+                    for c in range(3):
+                        if row is None:
+                            cells.append(0)
+                        else:
+                            if c < sw and sj < S:
+                                cells.append(row[stack_col_offset + c])
+                            else:
+                                cells.append(0)
+
+                if sj < S:
+                    stack_col_offset += sw
+
+            if bi < B:
+                band_row_offset += bw
+
+        return (tuple(self.sortPrefix), tuple(cells))
+    # 2025-12-16 22:18 end
+
 
     # -------------------------
     # Cloning
@@ -251,7 +305,7 @@ class SegmentedMatrix:
                 new_c = r
                 rotated[new_r][new_c] = self.data[r][c]
         # swap widths
-        new_bandWidths = self.stackWidths[:]
+        new_bandWidths = self.stackWidths[::-1]
         new_stackWidths = self.bandWidths[:]
         self.bandWidths = new_bandWidths
         self.stackWidths = new_stackWidths
@@ -429,7 +483,7 @@ class SegmentedMatrix:
     # -------------------------
     # Group generators
     # -------------------------
-    def generate_neighbors(self):
+    def generate_neighbors(self, permuteSymbols=False):
         """
         Erzeuge alle Nachbarn dieser Matrix mittels eines Erzeugendensystems
         der zulässigen Operationen.
@@ -440,6 +494,7 @@ class SegmentedMatrix:
         r = self.clone()
         r.rotate()
         neighbors.append(r)
+        SegmentedMatrix.cntRotate+=1
 
         # 2) Band 0 <-> k
         for k in range(1, len(self.bandWidths)):
@@ -448,6 +503,7 @@ class SegmentedMatrix:
             x = self.clone()
             x.permuteBands(p)
             neighbors.append(x)
+            SegmentedMatrix.cntBandStackPermute+=1
 
         # 3) Stack 0 <-> k
         for k in range(1, len(self.stackWidths)):
@@ -456,6 +512,7 @@ class SegmentedMatrix:
             x = self.clone()
             x.permuteStacks(p)
             neighbors.append(x)
+            SegmentedMatrix.cntBandStackPermute+=1
 
         # 4) Zeile 0 <-> k in Band j
         for j, bw in enumerate(self.bandWidths):
@@ -465,6 +522,7 @@ class SegmentedMatrix:
                 x = self.clone()
                 x.permuteRows(j, p)
                 neighbors.append(x)
+                SegmentedMatrix.cntRowColPermute+=1
 
         # 5) Spalte 0 <-> k in Stack j
         for j, sw in enumerate(self.stackWidths):
@@ -474,6 +532,22 @@ class SegmentedMatrix:
                 x = self.clone()
                 x.permuteCols(j, p)
                 neighbors.append(x)
+                SegmentedMatrix.cntRowColPermute+=1
+
+         # 6) symbole permutation
+        if permuteSymbols:
+            myList=sorted(list(set([a for row in self.data for a in row if a>0])), reverse=True)
+            u = myList.pop()
+            for v in myList:
+                x = self.clone()
+                x.data=[[u if a==v else v if a==u else a for a in row ] for row in self.data]
+                neighbors.append(x)
+                SegmentedMatrix.cntSymbolPermute+=1
+                
+            
+
+
+             
 
         return neighbors
 
@@ -534,7 +608,7 @@ class SegmentedMatrix:
     # 2025-12-14 19:06 begin
     # 2025-12-14 20:05 begin
     @classmethod
-    def filterMaximalSegmentedMatrices(cls, matrices):
+    def filterMaximalSegmentedMatrices(cls, matrices, permuteSymbols=False):
         """
         Entfernt alle SegmentedMatrices, aus denen sich mit den zulässigen
         Gruppenoperationen noch Matrizen mit größerer sortId erzeugen lassen.
@@ -570,7 +644,7 @@ class SegmentedMatrix:
                     currentMaxima[sid] = sm
 
                 # Nachbarn über Erzeugendensystem
-                for nb in sm.generate_neighbors():
+                for nb in sm.generate_neighbors(permuteSymbols=permuteSymbols):
                     nb_sid = nb.sortId
 
                     # >>> EINZIGE KORREKTUR BEGINN <<<
@@ -587,6 +661,12 @@ class SegmentedMatrix:
         return list(allMaxima.values())
     # 2025-12-14 20:05 end
 
+
+
+
+    # -------------------------
+    # all representatives of all types
+    # -------------------------
 
     # 2025-12-14 19:27 begin
     @classmethod
@@ -614,56 +694,47 @@ class SegmentedMatrix:
                     c = p % 3
                     m.data[r][c] = 1
 
-                # Optimize under symmetries
-                opt = m.toptimize()
-
                 # MUST set prefix BEFORE getting sortId
-                opt.sortPrefix = [k]
+                m.sortPrefix = [k]
 
                 # Now compute canonical ID including prefix
-                sid = opt.sortId
+                sid = m.sortId
 
                 # If this representative has not yet been seen:
                 if sid not in result:
-                    result[sid] = opt.clone()
+                    result[sid] = m.clone()
 
         # result: dict mapping sortId -> SegmentedMatrix
         # We build a new dict `filtered_result` with only the survivors.
 
-        filtered_result = {}
+        rotated_result = {}
 
         for sid, sm in result.items():
-            # Keep original sortId for comparison (tuple)
-            original_id = sid
 
             # Compute rotated + optimized representative
             rotated = sm.clone()
             rotated.rotate()
-            opt_rot = rotated.toptimize()
-
-            # If opt_rot has a strictly larger sortId, discard the original entry
-            if opt_rot.sortId > original_id:
-                # discard: do not add to filtered_result
-                continue
 
             # Otherwise keep the original entry
             # (use the stored matrix; ensure we store a clone to avoid aliasing)
-            filtered_result[original_id] = sm.clone()
+            rotated_result[rotated.sortId] = rotated
 
         # Replace result dict with filtered_result
-        result = filtered_result
+        result = {**result, **rotated_result}
 
-        result_list = [result[key] for key in sorted(result.keys())]
+        filtered=cls.filterMaximalSegmentedMatrices(list(result.values()))
+
+        filtered.sort(key=lambda sm: sm.sortId, reverse=True)
 
         # Jede Matrix zuerst reduzieren
-        for sm in result_list:
+        for sm in filtered:
             sm.reduce()
 
         # Neue sortPrefix-Nummerierung
-        for i, sm in enumerate(result_list, start=1):
+        for i, sm in enumerate(filtered, start=1):
             sm.sortPrefix = [i]
 
-        return result_list
+        return filtered
     # 2025-12-14 19:27 end
 
 
@@ -701,7 +772,6 @@ class SegmentedMatrix:
             for P in parts:
                 sm = base.clone()
                 sm.info = {"partition": P}
-                sm.sortPrefix = list(base_sortKey)
 
                 # Alles auf 0 setzen
                 for r in range(len(sm.data)):
@@ -721,27 +791,25 @@ class SegmentedMatrix:
         # Filterphase
         # ------------------------------------------
 
-        filtered = []
+        unique={}
         for sm in results:
-            orig_id = sm.sortId
-
-            # Bedingung A: toptimize(M) größer als M?
-            topo = sm.toptimize()
-            if topo.sortId > orig_id:
-                continue
-
-            # Bedingung B: rotate(M).toptimize() größer als M?
-            rot = sm.clone()
+            sid = sm.sortId
+            # If this representative has not yet been seen:
+            if sid not in unique:
+                unique[sid] = sm
+        rotated={}
+        for sm in unique.values():
+            rot=sm.clone()
             rot.rotate()
-            rot_opt = rot.toptimize()
+            sid=rot.sortId
+            if sid not in rotated:
+                rotated[sid]=rot
+        unique={**unique, ** rotated}
+                
 
-            if rot_opt.sortId > orig_id:
-                continue
+        filtered=cls.filterMaximalSegmentedMatrices(unique.values())
 
-            filtered.append(sm)
-
-        # Sortieren nach sortId absteigend
-        filtered.sort(key=lambda sm: sm.sortId, reverse=True)
+        filtered.sort(key=lambda sm: sm.sortId)
 
         # Neue sortPrefix-Nummerierung für gewichtete Matrizen
         for i, sm in enumerate(filtered, start=1):
@@ -829,6 +897,8 @@ class SegmentedMatrix:
 
             result.append(sm)
 
+            result.sort(key=lambda sm: sm.sortId)
+
         return result
     
 
@@ -850,8 +920,13 @@ class SegmentedMatrix:
         for bm in maxima:
             bm.reduce()
 
+        for sm in maxima:
+            sm.sortPrefix = [-sm.sortPrefix[0]]
+
+
         # sortieren (sortId ist Property!)
         maxima.sort(key=lambda m: m.sortId, reverse=True)
+        #maxima.sort(key=lambda m: m.sortId)
 
         # neu nummerieren
         for i, sm in enumerate(maxima, start=1):
@@ -871,9 +946,12 @@ class SegmentedMatrix:
 
         # 1) Alle Restricted Growth Sequences der Länge nClues
         rgs_list = restrictedGrowthSequence(nClues)
+        rgs_list=[[nClues+1-s for s in rgs] for rgs in rgs_list]
 
         # 2) Alle 0-1 Zellrepräsentanten
         base_matrices = cls.all01CellRepresentatives(nClues)
+        for sm in base_matrices:
+            sm.sortPrefix=[-sm.sortPrefix[0]]
 
         collected = []
 
@@ -915,8 +993,13 @@ class SegmentedMatrix:
                 collected.append(sm)
 
         # 5) Maxima bestimmen
-        maxima = cls.filterMaximalSegmentedMatrices(collected)
+        maxima = cls.filterMaximalSegmentedMatrices(collected, permuteSymbols=True)
+        maxima.sort(key=lambda sm: sm.sortId,reverse=True)
+        for nr,sm in enumerate(maxima, start=1):
+            sm.sortPrefix=[nr]
 
+        for m in maxima:
+            m.data=[[0 if s==0 else nClues+1-s for s in row] for row in m.data]
         return maxima
 
     # 2025-12-14 20:36 end
@@ -1412,7 +1495,7 @@ if __name__ == "__main__":
 
     pass
 
-    nclues=4
+    nclues=2
     print()
     print("all01CellRepresentatives(nclues")
     #for nr, m in enumerate(allWeightedBlockRepresentatives(nclues)):
@@ -1427,54 +1510,65 @@ if __name__ == "__main__":
 
     import time
 
+    """
     # test case
-    maxNClues=5
+    maxNClues=3
     from contextlib import redirect_stdout
     with open('C:\\Users\\guent\\OneDrive\\work\\python\\out.txt', 'w') as f:
         startTime = time.time()
-        for nclues in list(range(2,maxNClues+1)):
-            with redirect_stdout(f):
+        with redirect_stdout(f):
+            for nclues in list(range(2,maxNClues+1)):
                 print('nClues =', nclues)
                 print()
                 print('all01BlockRepresentatives')
                 print()
+                SegmentedMatrix.resetPermutationCounters()
                 for nr, m in enumerate(SegmentedMatrix.all01BlockRepresentatives(nclues)):
                     print(nr)
                     print(m.data,m.bandWidths,m.stackWidths)
                     m.print()
                     print()
+                SegmentedMatrix.printPermutationCounters()
                 print('allWeightedBlockRepresentatives')
                 print()
+                SegmentedMatrix.resetPermutationCounters()
                 for nr, m in enumerate(SegmentedMatrix.allWeightedBlockRepresentatives(nclues)):
                     print(nr)
                     print(m.data,m.bandWidths,m.stackWidths)
                     m.print()
                     print()
+                SegmentedMatrix.printPermutationCounters()
                 print('allWeightedCellRepresentatives')
                 print()
+                SegmentedMatrix.resetPermutationCounters()
                 for nr, m in enumerate(SegmentedMatrix.allWeightedCellRepresentatives(nclues)):
                     print(nr)
                     print(m.data,m.bandWidths,m.stackWidths)
                     m.print()
                     print()
+                SegmentedMatrix.printPermutationCounters()
                 print('all01CellRepresentatives')
                 print()
+                SegmentedMatrix.resetPermutationCounters()
                 for nr, m in enumerate(SegmentedMatrix.all01CellRepresentatives(nclues)):
                     print(nr)
                     print(m.data,m.bandWidths,m.stackWidths)
                     m.print()
                     print()
+                SegmentedMatrix.printPermutationCounters()
                 print('allSymbolRepresentatives')
                 print()
+                SegmentedMatrix.resetPermutationCounters()
                 for nr, m in enumerate(SegmentedMatrix.allSymbolRepresentatives(nclues)):
                     print(nr)
                     print(m.data,m.bandWidths,m.stackWidths)
                     m.print()
                     print()
+                SegmentedMatrix.printPermutationCounters()
         endTime = time.time()
         print("time elapse:",endTime - startTime)
 
-
+    """
 
     """
     # test case
@@ -1510,9 +1604,35 @@ if __name__ == "__main__":
         myMatrix.print()
     """
 
+    maxNClues=4
+    
+    minNClues=2
+    from contextlib import redirect_stdout
+    with open('C:\\Users\\guent\\OneDrive\\work\\python\\out.txt', 'w') as f:
+        startTime_all = time.time()
+        with redirect_stdout(f):
+            for nclues in list(range(minNClues,maxNClues+1)):
+                print('nClues =', nclues)
+                print()
 
-
+                for method in [SegmentedMatrix.all01BlockRepresentatives, SegmentedMatrix.allWeightedBlockRepresentatives,
+                               SegmentedMatrix.allWeightedCellRepresentatives,SegmentedMatrix.all01CellRepresentatives,
+                               SegmentedMatrix.allSymbolRepresentatives]:
+                    print('function:', method.__name__)
+                    print()
+                    SegmentedMatrix.resetPermutationCounters()
+                    startTime=time.time()
+                    for nr, m in enumerate(method(nclues)):
+                        print(nr)
+                        print(m.sortPrefix)
+                        print(m.data,m.bandWidths,m.stackWidths)
+                        m.print()
+                        print()
+                    endTime=time.time()
+                    print("time elapse for",method.__name__+", Clues =",str(nclues)+":",endTime - startTime)
+                    SegmentedMatrix.printPermutationCounters()
+                    print()
+        endTime_all = time.time()
+        print("time elapse:",endTime_all - startTime_all)
         
-
-
 
