@@ -109,3 +109,19 @@ a box row iscalled band, a box column is called stack. The values in the cells o
     | o o o | o o o | o o o |
     | o o o | o o o | o o o |
     +-------+-------+-------+
+
+
+valid (consisten) sudoku
+solvable sudoku / usolvable sudoku = contradictory sudoku
+complete sudoku
+clue configuration = configuration = incomplete sudoku
+n-clue-configuration: sudoku with n elements
+valid configuration != solvable configuration  
+valid Confiseuran be an unsolvable configuration
+
+sudoku rules: no duplicat in a row, a column or a box
+
+transposition equivalency + reflection equivalency = geometric equivalency 
+geometric equivalency + permutation equivalency = equivalency
+            
+     
