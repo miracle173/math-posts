@@ -110,6 +110,7 @@ a box row iscalled band, a box column is called stack. The values in the cells o
     | o o o | o o o | o o o |
     +-------+-------+-------+
 
+sudoku rules: no duplicat in a row, a column or a box
 
 valid (consisten) sudoku
 solvable sudoku / usolvable sudoku = contradictory sudoku
