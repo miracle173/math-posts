@@ -5,4 +5,4 @@ Here's the map:
 [![The map][1]][1]
 
 
-  [1]: https://i.sstatic.net/f5yii.jpg
+  [1]: https://github.com/miracle173/math-posts/blob/main/stackexchange/math/four_color_a_map/f5yii.jpg
