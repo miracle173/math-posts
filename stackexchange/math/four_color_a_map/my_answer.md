@@ -1,4 +1,4 @@
-# https://math.stackexchange.com/questions/3247841/how-can-this-planar-map-be-coloured-using-4-colours
+https://math.stackexchange.com/questions/3247841/how-can-this-planar-map-be-coloured-using-4-colours
 
 Asumme that all countries of a map are already colored except one. And this one country has three neigbourghs. Then we can easily complete
 the coloring because there is at least one color that is not assigned ot one of the three neigburghs and such a color can be assigned to this 
