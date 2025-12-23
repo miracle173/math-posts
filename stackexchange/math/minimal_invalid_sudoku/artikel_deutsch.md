@@ -79,8 +79,9 @@ links nach unten rechts, unter Weglassung der 0, zu sortieren. Bei den  Matrizen
 
 4. Hier reicht es, die nichtleeren Blöcke zu vergleichen. Diese müssen aber auf vollständige 3*3-Blöcke expandiert werden. Auf den weggelassenen Blöcken stimmen die Folgen deshalb überein.
 
-5. Hier reicht es, die nichtleeren Elemente zu vergleichen, in der Reihenfolge Block für Block, Zeile für Zeile, . Auf den weggelassenen Blöcken stimmen die Folgen deshalb überein. 
+5. Hier reicht es, die nichtleeren Elemente zu anzuführen, in der Reihenfolge Block für Block, Zeile für Zeile, . Auf den weggelassenen Blöcken stimmen die Folgen deshalb überein.
 
+6. Hier reicht es, die nichtleeren Elemente zu anzuführen, in der Reihenfolge Block für Block, Zeile für Zeile, . Auf den weggelassenen Blöcken stimmen die Folgen deshalb überein. 
 
 ##Beispiel:
 
@@ -88,7 +89,7 @@ links nach unten rechts, unter Weglassung der 0, zu sortieren. Bei den  Matrizen
 .9.|86
 4..|..
 ---+--
-..4|..
+..6|..
 </pre></code>
 
 
@@ -153,32 +154,21 @@ gebildet, also
 
 Die Abstände in dieser Darstellung des  Sortierschlüssel dienen nur zur Verdeutlichung und müssen bei der Implementation des Sortierschlüssels weggelassen werden.
 
-5. aus
+5. Wir substituieren nun die Zahlen der Folge
 <pre><code>
-.9.|86
-4..|..
----+--
-..6|..
-</pre></code>
-
-ergibt sich die Zahlenfolge
-
-<pre><code>
-94 86 6
-</pre></code>
-Das ist der sechste und letzte Teil des Schlüssels. Für den fünften und vorletzten Teil, substituieren wir nun die Zahlen dieser Folge von links nach rechts durch 1,2,3,... und erhalten
+ 94 86 6
+</code></pre
+   von links nach rechts durch 1,2,3,... und erhalten
 
 <pre><code>
 12 34 4
 </pre></code>
-bzw, da die Anzahl der Clues 5 ist,
+die wir von der Anzahl der Clues substrahiern. Da die Anzahl der Clues 5 ist, haben wir
 
 <pre><code>
 43 21 1
 </pre></code>
-Die Abstände in dieser Darstellung des  Sortierschlüssel dienen nur zur Verdeutlichung und müssen bei der Implementation des Sortierschlüssels weggelassen werden.
-
-6. 
+Die Abstände in dieser Darstellung des  Sortierschlüssel dienen wiederum nur zur Verdeutlichung und müssen bei der Implementation des Sortierschlüssels weggelassen werden.
 
 Anmerkung:
 Wenn man die beiden letzten Spalten der Matrix vertauscht, erhält man
@@ -206,10 +196,8 @@ bzw,
 also einen lexikographisch größeren Wert
 Dies ist auch der größte Wert, der in dieser Äquivalenzklasse erreicht werden kann.
 
-6. 
-
-Der Sortierschlüssel ist also
+Die SortId ist also
 <pre><code>
-4 110100000 221 010100000110000000001000000 23143
+4 110100000 221 010100000110000000001000000 43211
 </pre></code>
 Die Abstände hier dienen zur Trennung der Sortierschlüsselkomponenten und sind deshalb Teil des Schlüssels.
