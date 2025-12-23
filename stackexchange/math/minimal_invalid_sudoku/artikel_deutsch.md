@@ -9,7 +9,10 @@
 
 4. Absteigend, die belegten Zellen,pro Block von links nach rechts und von oben nach unten, die Blöcke in der Reihenfolge von 2
 
-5. Aufsteigend, die Zellen von links nach rechts und von oben nach unten, die Blöcke von links nach rechts und von oben nach unten
+5. Aufsteigend, die Zellen von links nach rechts und von oben nach unten, die Blöcke von links nach rechts und von oben nach unten, werden bei den Zellen die Werten durch 1,2,3,... ausgetauscht
+
+6. Aufsteigend, die Zellen von links nach rechts und von oben nach unten, die Blöcke von links nach rechts und von oben nach unten, die Werte der Zellen
+
 
 Anmerkungen:
 Von links nach rechts und von oben nach unten bedeutet, es werden zuerst die Elemente der ersten Zeile angegeben, dann die der zweiten usw.
@@ -82,10 +85,10 @@ links nach unten rechts, unter Weglassung der 0, zu sortieren. Bei den  Matrizen
 ##Beispiel:
 
 <pre><code>
-.3.|41
-2..|..
+.9.|86
+4..|..
 ---+--
-..2|..
+..4|..
 </pre></code>
 
 
@@ -152,24 +155,58 @@ Die Abstände in dieser Darstellung des  Sortierschlüssel dienen nur zur Verdeu
 
 5. aus
 <pre><code>
-.3.|41
-2..|..
+.9.|86
+4..|..
 ---+--
-..2|..
+..6|..
 </pre></code>
 
 ergibt sich die Zahlenfolge
 
 <pre><code>
-32 41 2
+94 86 6
 </pre></code>
+Das ist der sechste und letzte Teil des Schlüssels. Für den fünften und vorletzten Teil, substituieren wir nun die Zahlen dieser Folge von links nach rechts durch 1,2,3,... und erhalten
 
+<pre><code>
+12 34 4
+</pre></code>
 bzw, da die Anzahl der Clues 5 ist,
 
 <pre><code>
-23 14 3
+43 21 1
 </pre></code>
 Die Abstände in dieser Darstellung des  Sortierschlüssel dienen nur zur Verdeutlichung und müssen bei der Implementation des Sortierschlüssels weggelassen werden.
+
+6. 
+
+Anmerkung:
+Wenn man die beiden letzten Spalten der Matrix vertauscht, erhält man
+
+<pre><code>
+.9.|68
+4..|..
+---+--
+..6|..
+</pre></code>
+Substituiert man hier durch 1,2,3,... erhält man
+<pre><code>
+.1.|34
+2..|..
+---+--
+..3|..
+</pre></code>
+also den Teilschküssel
+<pre><code>
+12 34 3
+</pre></code>
+bzw,
+<pre><code>
+43 21 2</pre></code>
+also einen lexikographisch größeren Wert
+Dies ist auch der größte Wert, der in dieser Äquivalenzklasse erreicht werden kann.
+
+6. 
 
 Der Sortierschlüssel ist also
 <pre><code>
