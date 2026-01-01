@@ -89,12 +89,13 @@ ist s die Spiegelung d3, also die Matrixtranposition, dann ist
     r_p1 o r_p2 = r_{p1 o p2}
     r_p1 o r_p2 = r_{p1 o p2}
 
-            s       | r_i,q r_j,q c_i,q c_j,q R_q C_q
-    ------+---------+-------
-    s     | 1       | c_i,q*s |
-    r_i,p | s*c_i,p | r_{i,poq}
-    c_i,p | s*r_i,p | =
-    R_p   | s*C_p   | r_{p(i),q} o R_p
-    C_p   | s*R_p   |
-    
+           |s      |r_{i,q}        |c_{i,q}        |R_q                |C_q
+    -------+-------+---------------+---------------+-------------------+-----------------
+    s      |1      |c_{i,q}*s      |r_{i,q}*s      |C_q*s              |R_q*s
+    r_{i,p}|s*c_i,p|r_{i,p*q}      |c_{i,q}*r_{i,p}|R_q*r_{q^(-1)(i),p}|C_q*r_{i,p
+    r_{j,p}|~      |r_{i,q}*r_{j,p}|c_{i,q}*r_{j,p}|~                  |~
+    c_{i,p}|s*r_i,p|r_{i,q}*c_{i,p}|c_{i,p*q}      |R_q*c_{i,p}        |C_q*c_{q^(-1)(i),p}
+    c_{j,p}|~      |r_{i,q}*c_{j,p}|c_{i,q}*c_{j,p}|~                  |~
+    R_p    |s*C_p  |r_{p(i),q}*R_p |c_{i,q}*R_p    |R_{p*q}            |C_q*R_p
+    C_p    |s*R_p  |r_{i,q}*C_p    |c_{p(i),q}*C_p |R_q*C_p            |C_{p*q}
     
