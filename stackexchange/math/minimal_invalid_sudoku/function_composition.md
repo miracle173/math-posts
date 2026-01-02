@@ -1,5 +1,6 @@
-function cNote:
+Note:
     (FoG)(x) = F(G(x))
+    
 # Permutationen von 3 Elementen
 
          e0 s1 s2 s3 t+ t-
@@ -89,13 +90,36 @@ ist s die Spiegelung d3, also die Matrixtranposition, dann ist
     r_p1 o r_p2 = r_{p1 o p2}
     r_p1 o r_p2 = r_{p1 o p2}
 
-           |s      |r_{i,q}        |c_{i,q}        |R_q                |C_q
+
+
+The Cayley tables must be interperted in the folowing way
+
+    * | b
+    --+----
+    a | a*b
+where '*' is the composition of functions, so 
+
+    (a*b)(x)=a(b(x)
+    
++ 's' is the reflection, transposition of a matrix
++ 'p' and 'q' are permutations of the number 0,1,2
++ 'i' and 'j' are from {0,1,2}
++ 'R_p' is ther permutation of the bands by the permutation p
++ 'C_p' is the  permutation of the stacks  by the permutation p
++ 'r_{i,p}' is the permutaion of the rows of band i by the permutation p
++ 'c_{i,p}' is the permutation of the columns of stack i by the permuation p
+
+The Cayley table of the composition of the different types of geometric transformations of a Sudoku
+
+    a\a*b\b|s      |r_{i,q}        |c_{i,q}        |R_q                |C_q
     -------+-------+---------------+---------------+-------------------+-----------------
     s      |1      |c_{i,q}*s      |r_{i,q}*s      |C_q*s              |R_q*s
     r_{i,p}|s*c_i,p|r_{i,p*q}      |c_{i,q}*r_{i,p}|R_q*r_{q^(-1)(i),p}|C_q*r_{i,p
     r_{j,p}|~      |r_{i,q}*r_{j,p}|c_{i,q}*r_{j,p}|~                  |~
     c_{i,p}|s*r_i,p|r_{i,q}*c_{i,p}|c_{i,p*q}      |R_q*c_{i,p}        |C_q*c_{q^(-1)(i),p}
-    c_{j,p}|~      |r_{i,q}*c_{j,p}|c_{i,q}*c_{j,p}|~                  |~
+    c_{j,p}|~      |r_{i,q}*c_{j,p}|c_{i,q}*c_{j,p}|~                  ~
     R_p    |s*C_p  |r_{p(i),q}*R_p |c_{i,q}*R_p    |R_{p*q}            |C_q*R_p
     C_p    |s*R_p  |r_{i,q}*C_p    |c_{p(i),q}*C_p |R_q*C_p            |C_{p*q}
     
+
+
