@@ -133,6 +133,230 @@ Verbesserung mit Hilfe des Erzeugendensystems
         L := L + current_maxnodes
                        
 Anmerkung; für die Permutationen von n Elementen bildet <(1,2), (1,3), ..., (1,n) ein Erzeugendensystem.
+
+
+
+
+####################################################
+
+Optimierung bezüglich der folgenden Ordnung:
+S ... Sudoku
+pi(S) ??
+
+S = s(i,j; k, l) = Matrix  s(3*i+k, 3*j+l= Folge s(27*i + 9*j +3*k +l)
+
+B(i, j, S):= 0, wenn alle Zellen von Block B_{i,j}des Sudokus S leer sind
+             1, sonst
+ 
+N(S) = B{0,0, S) + B(0, 1, S1) + ... + B(2, 1, S1)) + B(2, 2 , S)
+
+
+B(S):=(B{0,0, S), B(0, 1, S), ..., B(2, 1, S)), B(2, 2 , S)
+    
+W(i, j, S):= Anzahl der Zellen !=0 im Block B_{i,j} des Sudokus S1
+W(S):=  (W{0,0, S), W(0, 1, S), ..., W(2, 1, S)), W(2,2 , 1)
+
+
+e(x):=  0, wenn x=0
+        1, sonst
+b(i, j, S) := (e(s(i,j;0,0), e(i, j; 0, 1), ..., e(i, j; 1, 2), e(i, j; 2, 2))
+b(S) := (b(0, 0, S), b(0, 1, S), ..., b(2, 1, S), b(2, 2, S)
+
+pi(S, i, j) ist jene Symboltransformation, sodass pi(S) minimal wird,
+d.h.  pi(0, 0, S) wird minimiert, danach  pi(0, 1, S), usw.
+
+pi(S) := pi(0, 0, S), pi(0, 1, S), ..., pi(S, 2,1), pi(S, 2, 2))
+
+Ordnung S1<S2:
+N(S1) < N(S2) oder
+N(S1) = N(S2) und B(S1) < B(S2) oder 
+B(S1) = B(S2) und W(S1) < W(S2)
+W(S1)=W(S2) und b(S1)=b(S2), oder
+b(S1)=b(S2) und pi(S1)<pi(S2), oder
+pi(S1)<pi(S2) und S1<S2
+
+
+              
+Beispiel:
+
+    Sudoku 1:        Sudoku 2:
+    ..9|...|...      ..1|...|...
+    .7.|.9.|...      .2.|.1.|...
+    ..4|...|...      ..3|...|...
+    ---+---+---      ---+---+---
+    ...|...|...      ...|...|...
+    ...|...|...      ...|...|...
+    ...|...|...      ...|...|...
+    ---+---+---      ---+---+---
+    ...|...|...      ...|...|...
+    ...|...|...      ...|...|...
+    ...|...|...      ...|...|...
+
+Sudoku 1 ird durch pi auf Sudoku2 transformiert
+
+
+Ermittlung des Optimums
+
+Schritt 1) Es wird mittels globaler Operationen das Maximum bezüglich der B-Ordnung ermittelt. Das kann durch ausprobieren aller 2*3!*3! globaler Operationen (Spiegelung, Band-Permutation, Stack-Permutation) geschehen. Möglicherrwiese aber auch durch Optimierung gemäß der Blockordnung.
+
+Schritt 2) Anwendung der Stabilisatoren von 1 zur Ermittlung des Optimums bezüglich der W-Ordnung. 
+
+Anmerkung: Schritt 1 und Schritt2 können in einem Gemeinsamen Schritt durchgeführt werden. Für eine Sortierung von Sudokus müssen allerdings die Ordnungen B und W getrennt betrachtet werden. 
+
+Beispiel:
+
+    Sudoku 1:        Sudoku 2:        Sudoku 3
+    1..|1..|1..      12.|1..|...      1..|1..|...
+    ...|...|...      ...|...|...      ...|...|...
+    ...|...|...      ...|...|...      ...|...|...
+    ---+---+---      ---+---+---      ---+---+---
+    1..|...|1..      ...|...|...      ...|...|...
+    ...|...|...      ...|...|...      ...|...|...
+    ...|...|...      ...|...|...      ...|...|...
+    ---+---+---      ---+---+---      ---+---+---
+    ...|...|...      ...|...|...      ...|...|...
+    ...|...|...      ...|...|...      ...|...|...
+    ...|...|...      ...|...|...      ...|...|...
+ 
+
+Wenn das Sudoku global optimiert ist, dann lokale Optimierung entlang der Blockfolge B(S, 0, 0), B(S, 0 , 1) , ..., B(S, 2, 1), B(S, 2,2). 
+
+
+Globale Optimierung:
+Entweder alle (3!)^2*2=72 Permutationen ausprobieren oder folgender Branch and Bound-Algortihmus
+
+
+
+    
+    
+# Initialisierung
+startGrid=self
+
+rowCount=3
+colCount=3
+
+currOpt=None
+tranposedGrid=deepcopy(startGrid)
+tranposedGrid.transpose()
+currSolutions=[startGrid, tranposedGrid]
+minFreeCol=0
+for r in range(rowCount)
+    for c range(colCount)
+        currOpt=0
+        for grid in currSolutions:
+            for iin range(maxRows):
+                rowIsUsed=False
+                for j in range(maxCols):
+                    canSwap=(((r==i) 
+                        or ((r<i) and not rowIsUsed)) 
+                        and ((c==j) or ((minFreeCol==c) and (c<j))))
+                    if canSwap and grid(i,j)>=currOpt:
+                        gridCopy=deepcopy(grid)
+                        rowIsUsed=True
+                        assert(c<=minFreeCol)
+                        gridCopy.switchRows(i,r)
+                        gridCopy.switchCols(j,c)
+                        minFreeCol=max(minFreeCol,i)
+                        if grid(i,j)>currOpt:
+                            nextSolutions=[gridCopy]
+                        else:
+                            nextSolution.append(gridCopy)
+            
+            
+             
+    
+
+"""
+    ?=(r,c)
+    x=(i,j)
+    
+    i<r: unmöglich, z.B
+    oooooo...      
+    oooooo.x.      
+    ooooo?...     
+    unmöglich     
+       
+    (case 1)
+    r==i, c==j, kein Tausch notwendig
+    oooooo...     
+    oooooo...     
+    oooooyy..      
+    .........     
+    ok          
+
+    c<minFreeCol
+    rowIsUsed=True
+    (r,c=!=(i,j)
+    oooooo...     
+    oooooo...     
+    ooooo?.x.      
+    ...x.xx..     
+    nein          
+              
+    (case 2)
+    i==r, 
+    minFreeCol==c<j
+    oooooo...         
+    oooooo...      
+    oooooo?.x        
+    .........  
+    ok    
+
+
+    i>r, 
+    minFreeCol<=c
+    rowIsUsed=True
+    oooooo...         
+    oooooo...      
+    oooooo?..        
+    ...x...x.        
+    nein          
+         
+    (case 3)
+    r<=i, 
+    c==j
+    rowIsUsed=False
+    oooooo... 
+    oooooo... 
+    oooooo... 
+    ...?.....  
+    ...x..... 
+    ...x..... 
+    ok 
+
+    (case 4)
+    r<=i, 
+    minFreeCol==c<=j
+    rowIsUsed=False
+    oooooo... 
+    oooooo... 
+    oooooo... 
+    ......?.x  
+    ......x.x 
+    ok 
+    
+    
+(r==i and c==j) # case 1
+or ((r==i) and (minFreeCol==c<j))#case 2
+or (r<i and c==j and not rowIsUsed) #case 3
+or (r<=i and minFreeCol==c<=j and not rowIsUsed) #case 4
+
+
+(r==i and c==j) # case 1
+or ((r==i) and (minFreeCol==c<j))#case 2
+or (r<i and c==j and not rowIsUsed) #case 3
+or (r<i and minFreeCol==c<=j and not rowIsUsed) #case 4
+
+((r==i) and ((c==j) or ((minFreeCol==c) and (c<j))))
+or
+(r<i) and not rowIsUsed and ((c==j) or ((minFreeCol==c) and (c<=j)))
+
+(((r==i) or ((r<i) and not rowIsUsed)) and ((c==j) or ((minFreeCol==c) and (c<j))))
+
+"""
+ 
+
+ 
             
 
 
