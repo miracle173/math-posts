@@ -1,12 +1,18 @@
-from itertools import accumulate, pairwise, chain, compress
+from itertools import accumulate, pairwise, chain, compress, combinations, permutations, zip_longest
+from copy import deepcopy
 
 class SegmentedMatrix:
-    def __init__(self, aBandWidths, aStackWidths, aMatrix):
-        self.bandWidths=aBandWidths
-        self.stackWidths=aStackWidths
+    def __init__(self, aBandWidths, aStackWidths, aMatrix, addShadowMatrix=False):
+        self.bandWidths=aBandWidths[:]
+        self.stackWidths=aStackWidths[:]
         self.rowDim=sum(self.bandWidths)
         self.colDim=sum(self.stackWidths)
         self.readData(aMatrix)
+        if addShadowMatrix:
+            self._shadowMatrix=SegmentedMatrix(aBandWidths, aStackWidths,
+                [[1+row*sum(aStackWidths)+col for col in range(sum(aStackWidths))] for row in range(sum(aBandWidths))])
+        else:
+            self._shadowMatrix=None
 
     def __eq__(self, other):
         if isinstance(other,SegmentedMatrix):
@@ -15,6 +21,7 @@ class SegmentedMatrix:
                    and self.stackWidths==other.stackWidths)
         return(False)
         
+# I/O
     def readData(self, aMatrix):
         self._data=[myRow[:] for myRow in aMatrix]
         if (self.rowDim != len(self._data)):
@@ -57,14 +64,88 @@ class SegmentedMatrix:
                 print(out)
                 row_ptr += 1
         print(top_line)
-            
+   
+
     def _permuteRows(self, aPermutation):
         self._data=[self._data[idx] for idx in aPermutation]
+        if self._shadowMatrix:
+            self._shadowMatrix._permuteRows(aPermutation)
 
     def _permuteCols(self, aPermutation):
         self.transpose()
         self._permuteRows(aPermutation)
         self.transpose()
+    
+    def switchRows(self, first, second):
+        if first==second:
+            return
+        p=list(range(self.rowDim))
+        p[first], p[second]=second, first
+        self._permuteRows(p)
+        
+    def switchCols(self, first, second):
+        if first==second:
+            return
+        p=list(range(self.colDim))
+        p[first], p[second]=second, first
+        self._permuteCols(p)
+     
+    def debugPrint(self, message):
+        print()
+        print(message)
+        self.print()
+
+    def optimizeMatrix(self):
+        # initialize
+        myStartGrid=deepcopy(self)
+        #rowCount=3
+        #colCount=3
+        myTranposedGrid=deepcopy(myStartGrid)
+        myTranposedGrid.transpose()
+        myNextSolutions=[myStartGrid, myTranposedGrid]
+        myNextMinFreeCol=0
+        #assert(self.rowDim==self.colDim)
+        #assert(self.colDim==3)
+        myGridAlreadyStored=False
+        for r in range(self.rowDim):
+            myNextRowIsUsed=False
+            for c in range(self.colDim):
+                myCurrOpt=0
+                myCurrSolutions=myNextSolutions
+                myNextSolutions=[]
+                myMinFreeCol=myNextMinFreeCol
+                myRowIsUsed=myNextRowIsUsed
+                for myGrid in myCurrSolutions:
+                    myGridAlreadyStored=False
+                    for i in range(self.rowDim):
+                        for j in range(self.colDim):
+                            myCanSwap=(((r==i) 
+                                or ((r<i) and not myRowIsUsed)) 
+                                and ((c==j) or ((myMinFreeCol==c) and (c<j))))
+                            if myCanSwap and myGrid._data[i][j]>=myCurrOpt:
+                                if myGrid._data[i][j]>0:
+                                    myGridAlreadyStored=False
+                                    myGridCopy=deepcopy(myGrid)
+                                    myNextRowIsUsed=True
+                                    assert(c<=myMinFreeCol)
+                                    myGridCopy.switchRows(i,r)
+                                    myGridCopy.switchCols(j,c)
+                                    myNextMinFreeCol=max(myMinFreeCol,c+1)
+                                if myGrid._data[i][j]>myCurrOpt:
+                                    myCurrOpt=myGrid._data[i][j]
+                                    myNextSolutions=[myGridCopy]
+                                elif myGrid._data[i][j]> 0:
+                                    myNextSolutions.append(myGridCopy)
+                                elif not myGridAlreadyStored:
+                                #else:
+                                    myGridCopy=deepcopy(myGrid)
+                                    myNextSolutions.append(myGridCopy)
+                                    myGridAlreadyStored=True
+        return myNextSolutions
+            
+             
+
+# row/col manipulation
 
     def permutationRowsOfBand(self, aBandIdx, aPermutation):
         assert(aBandIdx<len(self.bandWidths))
@@ -86,7 +167,6 @@ class SegmentedMatrix:
         myPermutation[myStartCellIdx:myEndCellIdx]=[p+myStartCellIdx for p in aPermutation]
         return(myPermutation)
 
-
     def permutationBands(self, aPermutation):
         assert(len(aPermutation)==len(self.bandWidths))
         assert(sorted(aPermutation)==list(range(len(self.bandWidths))))
@@ -100,10 +180,14 @@ class SegmentedMatrix:
     def transpose(self):
         self._data = [list(i) for i in zip(*self._data)]
         self.bandWidths, self.stackWidths=self.stackWidths, self.bandWidths
+        if self._shadowMatrix:
+            self._shadowMatrix.transpose()
 
     def rotate(self):
         self._data=[list(row) for row in zip(*self._data[::-1])]
         self.bandWidths, self.stackWidths=self.stackWidths, self.bandWidths[::-1]
+        if self._shadowMatrix:
+            self._shadowMatrix.rotate()
 
     @staticmethod
     def compose(left, right):
@@ -124,39 +208,43 @@ class SegmentedMatrix:
     def permuteStacks(self, aPermutation):
         self._permuteCols(self.PermutationStacks(aPermutation))
 
+
     def _nullRows(self):
         return [any(r) for r in self._data]
 
-    def _expandRows(self, aFromWidths, aToWidths):
-        myListPair=[aFromWidths, aToWidths]
-        myRowLength=len(self._data[0])
-        myNewData=[]
-        myHoldPrevLength=0
-        myHoldPostLength=0
-        myPrevStart=0
-        myPostStart=0
-        for  (myPrevLength, myPostLength) in list(zip(*myListPair)):
-            myPrevStart+=myHoldPrevLength
-            myPostStart+=myHoldPostLength
-            myHoldPrevLength=myPrevLength
-            myHoldPostLength=myPostLength
-            myNewData.extend([self._data[myPrevStart+k] if k < myPrevLength 
-                else [0]*myRowLength for k in range(myPostLength)])
-        myNewData.extend([[0]*myRowLength]*(sum(aToWidths)-(myHoldPostLength+myPostLength)))
-        self._data=myNewData
+    # def _expandRows(self, aToWidths):
+        # if self._shadowMatrix:
+            # self._shadowMatrix._expandRows(aToWidths)
+            
+        # myListPair=[self.bandWidths, aToWidths]
+        # myRowLength=len(self._data[0])
+        # myNewData=[]
+        # myHoldPrevLength=0
+        # myHoldPostLength=0
+        # myPrevStart=0
+        # myPostStart=0
+        # for  (myPrevLength, myPostLength) in list(zip(*myListPair)):
+            # myPrevStart+=myHoldPrevLength
+            # myPostStart+=myHoldPostLength
+            # myHoldPrevLength=myPrevLength
+            # myHoldPostLength=myPostLength
+            # myNewData.extend([self._data[myPrevStart+k] if k < myPrevLength 
+                # else [0]*myRowLength for k in range(myPostLength)])
+        # myNewData.extend([[0]*myRowLength]*(sum(aToWidths)-(myHoldPostLength+myPostLength)))
+        # self._data=myNewData
+        # self.bandWidths=aToWidths[:]
       
     def expand(self, aNewBandWidths=[3,3,3], aNewStackWidths=[3,3,3]):
-        self._expandRows(self.bandWidths, aNewBandWidths)
+        self._expandRows(aNewBandWidths)
         self.transpose()
-        self._expandRows(self.bandWidths, aNewStackWidths)
+        self._expandRows(aNewStackWidths)
         self.transpose()
-        self.bandWidths=aNewBandWidths[:]
-        self.stackWidths=aNewStackWidths[:]
  
     def _reduceRows(self):
         mySelector=self._nullRows()
-        print("selector", mySelector)
         self._data=list(compress(self._data,mySelector))
+        if self._shadowMatrix:
+            self._shadowMatrix._reduceRows()
         myAccSelector=list(accumulate(mySelector))
         myWidthsBoundaries=list(pairwise(chain([0],accumulate(self.bandWidths))))
         self.bandWidths=[item for item in list(map(lambda x: myAccSelector[x[1][1]-1]-(0 if x[0]==0 else myAccSelector[x[1][0]-1]), enumerate(myWidthsBoundaries))) if item>0]
@@ -168,11 +256,206 @@ class SegmentedMatrix:
         self._reduceRows()
         self.transpose()
         
-        
-
+       
     
+    def _blockLine(self, aBlock):
+        myBandWidthsBoundaries=list(pairwise(chain([0],accumulate(self.bandWidths))))
+        myLoRow=myBandWidthsBoundaries[aBlock[0]][0]
+        myHiRow=myBandWidthsBoundaries[aBlock[0]][1]
+        myStackWidthsBoundaries=list(pairwise(chain([0],accumulate(self.stackWidths))))
+        myLoCol=myStackWidthsBoundaries[aBlock[1]][0]
+        myHiCol=myStackWidthsBoundaries[aBlock[1]][1]
+        myBlock=[self._data[row][col] for row in range(myLoRow,myHiRow)  for col in range(myLoCol ,myHiCol)]
+        return (myBlock)
+    
+    @staticmethod
+    def generateMaximal01Blocks (aBlockCount):
+        resultList=[]
+        for comb in combinations(range(1,9),aBlockCount-1):
+            sm=SegmentedMatrix([3],[3],[[ (1 if 3*row+col  in set(chain([0],comb)) else 0 ) for col in range(3) ] for row in range(3)], addShadowMatrix=True)
 
+            # filter 
+            smCopy=deepcopy(sm)
+            myBandWidths=sm.bandWidths[:]
+            myStackWidths=sm.stackWidths[:]
+            smCopy.reduce()
+            smCopy.expand(myBandWidths,myStackWidths)
+            if smCopy!=sm:
+                continue
+            
+            # filter
+            if max([sum(row) for row in sm._data])!=sum(sm._data[0]):
+                continue
+            
+            exitLoops=False
+            for myDoReflection in [True, False]:                    
+                for myInBandPerm in permutations([0,1,2]):
+                    for myInStackPerm in permutations([0,1,2]):
+                        smCopy=deepcopy(sm)
+                        if myDoReflection:
+                            smCopy.transpose()
+                        smCopy.permuteRowsOfBand(0,myInBandPerm)
+                        smCopy.permuteColsOfStack(0,myInStackPerm)
+                        if smCopy._data>sm._data:
+                            exitLoops=True
+                            break
+                    if exitLoops:
+                        break
+                if exitLoops:
+                    break
+            if not exitLoops:
+                resultList.append(sm)
+        # find stabilizers
+        stabilizers01Block={}
+        for sm in resultList:
+            myStabilizers=[]
+            for myDoReflection in [True, False]:                    
+                for myInBandPerm in permutations([0,1,2]):
+                    for myInStackPerm in permutations([0,1,2]):
+                        smCopy=deepcopy(sm)
+                        if myDoReflection:
+                            smCopy.transpose()
+                        smCopy.permuteRowsOfBand(0,myInBandPerm)
+                        smCopy.permuteColsOfStack(0,myInStackPerm)
+                        if smCopy._data==sm._data:
+                            myStabilizers.append((myDoReflection, myInBandPerm, myInStackPerm))
+            sm.stabilizers01Block=myStabilizers
+        return(resultList)
 
-if __name__=="__main__":
-    import unit_test1
+    @staticmethod
+    def generateMaximalWeightedBlocks (aClueCount):
+        resultList=[]
+        for myBlockCount in range(1,aClueCount+1):
+            myAllPartions=SegmentedMatrix.allPartitions(aClueCount, myBlockCount)
+            for sm in SegmentedMatrix.generateMaximal01Blocks(myBlockCount):
+                for myPartition in myAllPartions:
+                    # generate all weighted block matrices 
+                    # of this 01 block matrix
+                    smWeighted=deepcopy(sm)
+                    idx=0
+                    for row in range(3):
+                        for col in range (3):
+                            if smWeighted._data[row][col]:
+                                smWeighted._data[row][col]=myPartition[idx]
+                                idx+=1
+                    
+                    # find all stabilizers
+                    # filter out non maximas
+                    smFixpoint=deepcopy(smWeighted)
+                    smWeighted.stabilizersWeightedBlock=[]
+                    exitLoop=False
+                    for my01Stabilizer in smWeighted.stabilizers01Block:
+                        smFixpoint=deepcopy(smWeighted)
+                        if my01Stabilizer[0]:
+                            smFixpoint.transpose()
+                        smFixpoint.permuteRowsOfBand(0,my01Stabilizer[1])
+                        smFixpoint.permuteColsOfStack(0,my01Stabilizer[2])
+                        if smFixpoint==smWeighted:
+                            smWeighted.stabilizersWeightedBlock.append(my01Stabilizer[:])
+                        if smFixpoint._data>smWeighted._data:
+                            exitLoop=True
+                            break
+                    if not exitLoop:
+                        resultList.append(smWeighted)
+        return(resultList)
+                    
+                            
+                    
+            
+    """
+    @staticmethood
+    def transposesUnusedBlocksOnly(aMatrix, aStabilizer):
+        myTranspose, myRowPermutation,myColPermutation=aStabilizer
+        if not myTranspose:
+            if  (
+                (any([for (i, row) in enumerate(myRowPermutation) if i!=row]) 
+                and not any([aMatrix[row][col] for (i, row) in enumerate(myRowPermutation) if i!=row for col in range(3)]))
+                or 
+                (any([for (i, col) in enumerate(myColPermutation) if i!=col]) 
+                and not any([aMatrix[row][col] for (i, col) in enumerate(myColPermutation) if i!=col for row in range(3)]))
+                ):
+                return True
+        else:
+            return False
+    """
+                
+    @staticmethod
+    def allPartitions(aSum: int, aCount: int):
+        """
+        Note: THis function was generated by ChatGPT
+        Return all ordered partitions (compositions) of aSum into aCount
+        positive integers.
         
+        Example:
+            allPartitions(4, 2) → [(1,3), (2,2), (3,1)]
+        """
+        results = []
+
+        def backtrack(remaining_sum, remaining_count, prefix):
+            # If no summands left to place:
+            if remaining_count == 0:
+                if remaining_sum == 0:
+                    results.append(tuple(prefix))
+                return
+
+            # Each summand must be at least 1
+            # Max value allowed is remaining_sum - (remaining_count-1)
+            # so that the remaining summands can each be at least 1
+            min_val = 1
+            max_val = remaining_sum - (remaining_count - 1)
+
+            if max_val < min_val:
+                return
+
+            for v in range(min_val, max_val + 1):
+                backtrack(remaining_sum - v, remaining_count - 1, prefix + [v])
+
+        backtrack(aSum, aCount, [])
+        return results
+
+
+    @staticmethod
+    def restrictedGrowthSequence(n: int):
+        """
+        Note: THis function was generated by ChatGPT
+        Generate all restricted growth sequences (RGS) of length n.
+
+        A restricted growth sequence is a sequence a[0..n-1] such that:
+          - a[0] == 1
+          - a[i] <= 1 + max(a[0..i-1]) for all i >= 1
+        """
+        if n <= 0:
+            return []
+
+        result = []
+
+        def backtrack(seq, current_max):
+            if len(seq) == n:
+                result.append(seq[:])
+                return
+
+            # Next value can range from 1 to current_max + 1
+            for v in range(1, current_max + 2):
+                seq.append(v)
+                backtrack(seq, max(current_max, v))
+                seq.pop()
+
+        backtrack([1], 1)
+        return result
+
+
+                    
+                    
+            
+    def _expandRows(self, aToWidths):
+        if self._shadowMatrix:
+            self._shadowMatrix._expandRows(aToWidths)
+        self._data=[self._data[row] if row - u[1][0]+u[0][0] < u[0][1] else [0]*len(self._data[0])   for u in zip_longest(pairwise(chain([0],accumulate(self.bandWidths))), pairwise(chain([0],accumulate(aToWidths))), fillvalue=(0,0)) for row in range(u[1][0],u[1][1]) ]
+        self.bandWidths=aToWidths[:] 
+        
+
+"""
+# for test and developement:
+if __name__=="__main__":
+    import unit_test2
+"""    
