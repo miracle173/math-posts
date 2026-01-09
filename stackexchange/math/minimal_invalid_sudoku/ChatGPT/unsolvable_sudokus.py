@@ -1,8 +1,10 @@
 from itertools import accumulate, pairwise, chain, compress, combinations, permutations, zip_longest
 from copy import deepcopy
 
+VERSION='250108_0540_open'
+
 class SegmentedMatrix:
-    def __init__(self, aBandWidths, aStackWidths, aMatrix, addShadowMatrix=False):
+    def __init__(self, aBandWidths, aStackWidths, aMatrix, addShadowMatrix=False, recordTransformations=False):
         self.bandWidths=aBandWidths[:]
         self.stackWidths=aStackWidths[:]
         self.rowDim=sum(self.bandWidths)
@@ -13,6 +15,10 @@ class SegmentedMatrix:
                 [[1+row*sum(aStackWidths)+col for col in range(sum(aStackWidths))] for row in range(sum(aBandWidths))])
         else:
             self._shadowMatrix=None
+        if recordTransformations:
+            self._transformations=[]
+        else:
+            self._transformations=None
 
     def __eq__(self, other):
         if isinstance(other,SegmentedMatrix):
@@ -72,9 +78,9 @@ class SegmentedMatrix:
             self._shadowMatrix._permuteRows(aPermutation)
 
     def _permuteCols(self, aPermutation):
-        self.transpose()
+        self._transpose()
         self._permuteRows(aPermutation)
-        self.transpose()
+        self._transpose()
     
     def switchRows(self, first, second):
         if first==second:
@@ -82,6 +88,10 @@ class SegmentedMatrix:
         p=list(range(self.rowDim))
         p[first], p[second]=second, first
         self._permuteRows(p)
+        if not self._transformations is None:
+            self._transformations.append(('sR',(first, second)))
+            
+            
         
     def switchCols(self, first, second):
         if first==second:
@@ -89,6 +99,8 @@ class SegmentedMatrix:
         p=list(range(self.colDim))
         p[first], p[second]=second, first
         self._permuteCols(p)
+        if not self._transformations is None:
+            self._transformations.append(('sC',(first, second)))
      
     def debugPrint(self, message):
         print()
@@ -143,7 +155,8 @@ class SegmentedMatrix:
                                     myGridAlreadyStored=True
         return myNextSolutions
             
-             
+               
+        
 
 # row/col manipulation
 
@@ -177,17 +190,24 @@ class SegmentedMatrix:
         assert(sorted(aPermutation)==list(range(len(self.stackWidths))))
         return([sum(self.stackWidths[:k]) +p for k in aPermutation for p in list(range(self.stackWidths[k]))])
         
-    def transpose(self):
+    def _transpose(self):
         self._data = [list(i) for i in zip(*self._data)]
         self.bandWidths, self.stackWidths=self.stackWidths, self.bandWidths
         if self._shadowMatrix:
             self._shadowMatrix.transpose()
+ 
+    def transpose(self):
+        self._transpose()
+        if not self._transformations is None:
+            self._transformations.append(('t',))        
 
     def rotate(self):
         self._data=[list(row) for row in zip(*self._data[::-1])]
         self.bandWidths, self.stackWidths=self.stackWidths, self.bandWidths[::-1]
         if self._shadowMatrix:
             self._shadowMatrix.rotate()
+        if not self._transformations is None:
+            self._transformations.append(('r',))        
 
     @staticmethod
     def compose(left, right):
@@ -198,15 +218,23 @@ class SegmentedMatrix:
 
     def permuteRowsOfBand(self, aBandIdx, aPermutation):
         self._permuteRows(self.permutationColsOfStack(aBandIdx, aPermutation))
+        if not self._transformations is None:
+            self._transformations.append(('pRB',(aBandIdx, aPermutation)))        
 
     def permuteColsOfStack(self, aStackIdx, aPermutation):
         self._permuteCols(self.permutationColsOfStack(aStackIdx, aPermutation))
+        if not self._transformations is None:
+            self._transformations.append(('pCS',(aBandIdx, aPermutation)))
         
     def permuteBands(self, aPermutation):
         self._permuteRows(self.permutationBands(aPermutation))
+        if not self._transformations is None:
+            self._transformations.append(('pB',(aBandIdx, aPermutation)))        
 
     def permuteStacks(self, aPermutation):
         self._permuteCols(self.PermutationStacks(aPermutation))
+        if not self._transformations is None:
+            self._transformations.append(('pS',(aBandIdx, aPermutation)))        
 
 
     def _nullRows(self):
@@ -236,9 +264,10 @@ class SegmentedMatrix:
       
     def expand(self, aNewBandWidths=[3,3,3], aNewStackWidths=[3,3,3]):
         self._expandRows(aNewBandWidths)
-        self.transpose()
+        self._transpose()
         self._expandRows(aNewStackWidths)
-        self.transpose()
+        self._transpose()
+        
  
     def _reduceRows(self):
         mySelector=self._nullRows()
@@ -252,9 +281,10 @@ class SegmentedMatrix:
         
     def reduce(self):
         self._reduceRows()
-        self.transpose()
+        self._transpose()
         self._reduceRows()
-        self.transpose()
+        self._transpose()
+        
         
        
     
@@ -453,9 +483,106 @@ class SegmentedMatrix:
         self._data=[self._data[row] if row - u[1][0]+u[0][0] < u[0][1] else [0]*len(self._data[0])   for u in zip_longest(pairwise(chain([0],accumulate(self.bandWidths))), pairwise(chain([0],accumulate(aToWidths))), fillvalue=(0,0)) for row in range(u[1][0],u[1][1]) ]
         self.bandWidths=aToWidths[:] 
         
+  
 
-"""
-# for test and developement:
+        
+def removeItems(aItems, aComponentsToRemove):
+    myRowComponentsToRemove, myColComponentsToRemove= aComponentsToRemove
+    myOldRowComponents=set()
+    myOldColComponents=set()
+    myNewRowComponents=set()
+    myNewColComponents=set()
+    myKeptItems=set()
+    for myItem in aItems:
+        myRowComponent, myColComponent = myItem
+        myOldRowComponents.add(myRowComponent)
+        myOldColComponents.add(myColComponent)
+        if (myRowComponent in myRowComponentsToRemove) or (myColComponent in myColComponentsToRemove):
+            continue
+        myNewRowComponents.add(myRowComponent)
+        myNewColComponents.add(myColComponent)
+        myKeptItems.add(myItem)
+    """
+    # debug
+    print("myOldRowComponents", myOldRowComponents)
+    print("myOldColComponents", myOldColComponents)
+    print("myNewRowComponents", myNewRowComponents)
+    print("myNewColComponents", myNewColComponents)
+    """
+    myNewRowComponentsToRemove=(myOldRowComponents-myNewRowComponents) 
+    myNewColComponentsToRemove=(myOldColComponents-myNewColComponents) 
+    myNewComponentsToRemove=(myNewRowComponentsToRemove, myNewColComponentsToRemove)
+    return(myKeptItems, myNewComponentsToRemove)   
+
+def cleanupGrid(aGrid, aPosition, aRemoveList):
+    # modifies aGrid !!!
+    myRowDim=len(aGrid)
+    myColDim=len(aGrid[0])
+    myRow,myCol=aPosition
+    myControlGrid=[[[set(),set()]  for j in range(myColDim)] for i in range(myRowDim)]
+    myControlGrid[myRow][myCol]=list(aRemoveList)
+    myGridIsClean=False
+    while not myGridIsClean:
+        myGridIsClean=True
+        for i in range(myRowDim):
+            for j in range(myColDim):
+                if myControlGrid[i][j]!=[set(),set()]:
+                    assert(len(myControlGrid[i][j])==2)
+                    print("debug")
+                    print_grid("grid",aGrid)
+                    print_grid("control",myControlGrid)
+                    print("i,j",i,j)
+                    print("from", aGrid[i][j])
+                    print("remove", myControlGrid[i][j])
+
+                    (myKeptItems, (myRowComponentes, myColComponents))=removeItems(aGrid[i][j], myControlGrid[i][j])
+                    
+
+                    print("remains", myKeptItems)
+                    print("remove Rows", myRowComponentes)
+                    print("remove Cols", myColComponents)
+
+
+                    aGrid[i][j]=myKeptItems
+                    if myRowComponentes:
+                        myGridIsClean=False
+                        for k in range(myRowDim):
+                            if k!=i:
+                                myControlGrid[k][j][0]|=myRowComponentes
+                    if myColComponents:
+                        myGridIsClean=False
+                        for k in range(myColDim):
+                            if k!=j:
+                                myControlGrid[i][k][1]|=myColComponents
+                    '''
+                    print("debug","i,j", i,j)
+                    print("debug", myControlGrid)
+                    '''
+    return aGrid
+    
+def print_grid(message, aGrid):
+    print(message)
+    myRowDim=len(aGrid)
+    myColDim=len(aGrid[0])
+    for i in range(myRowDim):
+        for j in range(myColDim):
+            print(i,",",j,":",aGrid[i][j])
+
+        
+
+        
+        
+
+            
+        
+
+        
+        
+
+
+        
+
+
 if __name__=="__main__":
     import unit_test2
-"""    
+        
