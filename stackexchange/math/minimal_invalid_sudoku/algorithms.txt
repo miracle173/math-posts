@@ -358,6 +358,439 @@ or
 
  
             
+lokale Optimierung
+
+Block(0,0) bis (Block( (r,c)-1) schon optimiert
+
+alle Stabilisatoren der Block 0,0 bis (r,c)-1 anwenden,
+wenn der Block (r,c) der erste der Reihe it, alsoc=0 oder c>0 aber der Block davor in niedrigerer  Reihe,
+dann Zeilenoptimierung anwendxen
+
+Blocksize (r,c)
+
+B_{r,c} = 
+
+Block= next block
+
+optimiere Block unter Berücksichtigung der Blöcke oberhalb und links von ihm, d. h. 
+minimiere den Block mittels der Stabilisatoren der bisherigen Blocksequenz
+
+aus der Menge der Stabilisatoren ermittel alle Stabilisatoren des neuen Blocks, eliminiere alle Stabilisatoren, die sich nicht auf Stabilisatoren des neuen Blocks erweitern lassen. sind Zeilen bzw Spalten durch diesen Neuen Block zum Band dazugekommen, dann sind die Permutationen dieser Splaten und Zeilen mit den alten Stabilisatoren zu combinieren und zu testen, also teste, ob 
+    stab_alt*rowperm_neu*colperm_neu
+ein Stabilisatoer für den neuen Block ist. Wenn ja, dann ist diese Kombination ein Stabilisatore der gesamten bisherigen Blockfolge, wenn nein, dann nicht. So lassen sich alle Stabilisatoren fineden
+
+man beachte, dass 
+    stab_alt*rowperm_neu*colperm_neu
+kommutativ ist
+
+Bound: 
+für jeden globalen Stabilisatore:
+wende den globalen Stabilisator auf die Kette an. 
+
+Suche nun die längste gemeinsame globale Kette des der ursprünglichen Kette und ihres Bildes
+Optimiere die neue ketee loakl. Ist sie größer als die ursprüngliche Kette, dann kann die ursprüngliche Kette nicht mehr maximal werden und die lokale Optimierung der ursprünglichen Kette kann abgebrochen werden.
+
+Bound lohnt sich vermutlich nicht, deshalb erst wenn man die komplette kette lokal optimiert, jeden globalen Stabilisator anwenden und Ergebnis jeweils lokal optimieren
+
+Stabilisatorengrid SG: 
+SG representiert die Blöcke der SegmentedMateix, also eine 3*3 Matrix
+der Wert ist entweder eine eine Liste von Zeilenpermutation-Spaltenpermutation-Paaren oder ein Vermerk, dass alle Permutationspaare erlaubt sind, wir nehmen dazu das die leere Liste
+
+Lokale Optimierung:
+Initialisierung:
+S[i][j]=[] for i in range(bandDim), for j in (stackDim)
+
+G ist die die Matrix der globalen Werte, G ist ebenfalls eine bandDim*stackDim-Matrix
+
+Optimierung einer konkreten SegmentedMatrix:
+
+Schneller Algorithmus:
+
+# create a list myCurrSolutions of all images of the global stabilizers
+# set a mark for all copies of the duplicate of the original matrix
+# this is needed to check later, if the original matrix isn't a maximum
+myCurrSolutions=[]
+for myBlockPermutation in myStartMatrix.globalStabilisators:
+    myCopyMatrix= deepcopy of myStartMatrix
+    apply myBlockPermutation to myCopyMatrix
+    myCurrSolutions.append(myCopyMatrix)  
+    if myCopyMatrix==myStartMatrix:
+        myCopyMatrix.isOriginal=True
+
+
+# create a list myNextSolutions that does not contain duplicates
+# for this sort the items and if two consecutive items are the same, 
+# remove one of them
+myCurrSolutions.sort()
+myNextSolutions=[]
+for mySolution in myCurrSolutions:
+    if myNextSolutions:
+        if myNextSolutions[-1]!=mySolution:
+            myNextSolutions.append(mySolution)
+    else:
+        myNextSolution=[mySolution]
+        
+
+        
+# for all blocks optimize the block without changing the preceding blocks 
+# that were already optimized
+# the order of the blocks is B00, B01, B02, B10, B11, B12, B20, B21, B22
+
+# there is a bandDim*stackDim matrix globalBlockValues that contains the global block values of this
+# SegmentedMatrix, that was used for global optimization
+# this matrix does not change during the execution of the algorithm
+# there is a bandDim*stackDim matrix localStabs that will be modified during the execution 
+# of the algorithm  but is the same for all matrices during a step
+
+
+# AllPerms is a constant that represents all row-permutation/column-permutation combinations 
+
+localStabs=[[AllPerms for s in range(self.stackDim)] for b in range(self.bandDim)]
+eaqch SegmentedMatrix contains its bandDim*stackDim matrix of height/width pair for each block 
+
+for b in range(self.bandDim):
+    for s in range(self.stackDim):
+        localStabs[b][s]=AllPerms
+        if globalBlockValue[b][s] is empty:
+            # block[b][s].localStabs bleibt weiterhin leer
+            continue
+        for mySegmentedMatrix in currSolutions:
+            if i==0:
+                myLeftBlockRowPerms=all row permutations
+                myLeftBlockHeight=0
+            else:
+                myLeftBlockRowPerms=row permutations of block[b-1][s].localStabs
+                myLeftBlockHeight=mySegmentedMatrix.block[b-1][s].height
+            if j==0:
+                myUpperBlockColPerms=all column permutations
+                myUpperBlockWidth=0
+            else:
+                myUpperBlockColPerms=column permutations of block[b][s-1].localStabs
+                myUpperBlockWidth=mySegmentedMatrix.block[b][s-1].width
+            
+            myContentHeight=height(globVal[b][s])
+            myContentWidth=width(globVal[b][s]) 
+            myBlock[b][s].height=min(myLeftBlockHeight+myContentHeight, maxBlockHeight)
+            myBlock[b][s].width=min(myUpperBlockWidth+myContentWidth, maxBlockWidth)
+            
+            myFreeRowPerms=augment idendity permutation of 1..(myLeftBlockHeight-1) 
+                by permutations of myLeftBlockHeight..(myBlock[b][s].height-1) for band b
+            myFreeColPerms=augment idendity permutation of 1..(myUpperBlockWidth-1) 
+                by permutations of myUpperBlockWidth..(myBlock[b][s].width-1) for stack s
+            
+            # now optimize for all Stabilisators
+            
+            for myRowStab in myLeftBlockRowPerms:
+                for myColStab in myUpperBlockColPerms:
+                    for myOtherRowPerm in myFreeRowPerms:
+                        for myOtherColPerm in myFreeColPerms:
+                            perm=myRowStab*myColStab*myOtherRowPerm*myOtherColPerm
+                            apply perm to Block b,s of mySegmentedMatrix
+                                and calculate value of this block as myBlockValue
+                            if myBlockValue >= myCurrentOptimum:
+                                myCopyMatrix = deepcopy of mySegmentedMatrix
+                                apply perm to myBlockValue
+                                
+                                if myBlockValue > currOpt:
+                                    currOpt=myBlockValue
+                                    nextSolutions=[myCopyMatrix]
+                                elif this value == currOpt:
+                                    nextSolutions.append(myCopyMatrix)
+                                    
+            # now optimal Block is found, find the stabilizers for this block 
+            #  that are consistent to the previous processed blocks
+            myBlockStabilizers=[]
+            myTestBlock=Block b,s of one matrix of nextSolutions
+            for myRowStab in set of row permutations in myLeftBlockRowPerms:
+                for myColStabs in set of col permutations in myUpperBlockColPerms:
+                    for myOtherRowPerms in myFreeRowPerms:
+                        for myOtherColPerms in myFreeColPerms:
+                            perm=myRowStab*mycolStabs*myOtherRowPerms*myOtherColPerms
+                            myCopyBlock=copy of myTestBlock
+                            apply perm to myCopyBlock 
+                            if myCopyBlock is sill equal to myTestBlock:
+                                myBlockStabilizers.append(perm)
+            now eliminate all stabilizers from the other blocks that now missing in the myBlockStabilizers
+                also the dependent ons
+            
+        currSolutions=nextSolutions
+
+result: currSollutions        
+                                
+
+= removing the stabilizers
+
+which row-permutation/column-permutation must be removed from Block b,s, because they are not stabilizers
+
+# initialize
+myRemoveRowPermutation=[set() for _ in range(self.bandDim)
+myRemoveColPermutation=[set() for _ in range(self.stackDim)
+
+# find out which row permutations and column permuation must be skipped
+myOldRowPerms =myLeftBlockRowPerms
+myOldColPerms = myUpperBlockColPerms
+
+myNewRowPerms=set()
+myNewColPerms=set()
+myStabilizers
+for myRowPerm in myOldRowPerms:
+    for myColPerm in myOldColPerms:
+        if myRowPerm*myColPerm is Stabilizer of Submatrix b,s:
+            myStabilizers.append(myRowPerm*myColPerm)
+            myNewRowPerms.add(myRowPerm)
+            myNewColPerms.add(myColPerms)
+
+
+myRemoveRowPermutation[b].update(myOldRowPerms-myNewRowPerms)
+myRemoveColPermutation[s].update(myOldColPerms-myNewColPerms)
+
+
+def removeItems(aItems, aComponentsToRemove):
+    myRowComponentsToRemove, myColComponentsToRemove= aComponentsToRemove
+    myOldRowComponents=set()
+    myOldColComponents=set()
+    myNewRowComponents=set()
+    myNewColComponents=set()
+    myKeptItems=set()
+    for myItem in aItems:
+        myRowComponent, myColComponent = myItem
+        myOldRowComponents.add(myRowComponent)
+        myOldColComponents.add(myColComponent)
+        if myRowComponent in myRowComponentsToRemove or myColComponent in myColComponentsToRemove:
+            continue
+        myNewRowComponents.add(myRowComponent)
+        myNewColComponents.add(myColComponent)
+        myKeptItems.append(myItem)
+    myNewRowComponentsToRemove=(myOldRowComponents-myNewRowComponents)-myRowComponentsToRemove
+    myNewColComponentsToRemove=(myOldColComponents-myNewColComponents)-myColComponentsToRemove
+    myNewComponentsToRemove=(myNewRowComponentsToRemove, myNewColComponentsToRemove)
+    return(myKeptItems, myNewComponentsToRemove)   
+
+def cleanupGrid(aGrid, aPosition, aRemoveList):
+    # modifies aGrid !!!
+    myRowDim=len(aGrid)
+    myColDim=len(aGrid[0])
+    myRow,myCol=aPosition
+    myControlGrid=[[set() for _ in range(colDim)] in range(colDim)]
+    myControlGrid[myRow][myCol]=aRemoveList
+    myGridIsClean=False
+    while not myGridIsClean:
+        myGridIsClean=True
+        for i in range(myRowDim):
+            for j in range(myColDim)):
+                if myControlGrid[i][j]:
+                    (myKeptItems, (myRowComponentes, myColComponents))=removeItems(aGrid[i][j], myControlGrid[i][j])
+                    aGrid[i][j]=myKeptItems
+                    if myRowComponentes:
+                        myGridIsClean=False
+                        for k in range(myRowDim):
+                            if k!=i:
+                                myControlGrid[k][j]|=myRowComponentes
+                    if myColComponents:
+                        myGridIsClean=False
+                        for k in range(myColDim)):
+                                if k!=j:
+                                    myControlGrid[i][k]|=myColComponents
+
+                    
+                    
+= simple Optimierung eines 3*3 Grids
+
+1. reduktion:
+    alle leeren Bänder nach Rechts
+    alle leeren Stacks nach unten
+    bei allen nichtleeren Bändern:
+        alle Zeilen innerhalb des Bandes nach rechts
+    bei allen Nichtleeren Stacks:
+        alle leeren Spalten innerhalb des Stacks nach links
+        
+    für jedes Band bestimme den Index der größten Zeile = Anzahl der Zeilen, die nicht 0 sind
+
+            
+            
+
+
+
+
+                                
+                    
+= vollständige Optimierung einer Konfiguration:
+
+In zwei Schritten
+
+1. globale Optimierung durchführen
+2. alle Stabilizer auf dieses optimum anwenden
+3. alle diese Lösungen lokal optimieren, die größte behalten
+
+
+= Erzeugen aller Konfigurationen
+
+1. Alle globalen Maxma erzeugen indem man alle Blockmatrizen durchscannt und nur die Maxima übriglässt
+2. Das Stufe für Stufe durchführen durch anwenden aller Stabilisatoren
+2. Für jedes Blockmaximum für jeden Block alle Varianten erzeugen
+
+= Beispiel
+
+4 Clues, 3 Blöcke
+
+1. mit drei Blöcken gibt es folgende vier Varianten. Diese Bekommt man, wenn man alle COmbinaion(9,3) blöcke des Sudokus durchtestet
+
+ooo
+
+oo.
+o.
+
+oo.
+..o
+
+o..
+.o.
+..o
+
+2. Wählen wir 
+
+oo.
+o.
+
+Diese besitzt zwei Stabilizer: die Idendität und die Transposition
+
+da gibt es mit 4 Clues nur die Möglichkeit, dass ein Blcok 2 Clues und die beiden anderen einen Clue enthalten
+
+also
+11
+2.
+
+12
+1.
+
+21
+1.
+
+Die erste und zweite Variante können mittels Transposition, dem Stabilizer, ineinander übergeführt werden.
+
+wir scheiden deshalb die erste Variante aus.
+
+Bei 2 Clues in einem Feld gibt es im wesentlichen diese zwei Anordnungsmöglichkeiten
+
+oo
+..
+
+o.
+.o
+
+Diesen sind die Zahlen 1+2 (=3) und 1+16 (=17) zugeordnet
+Alle anderen können durch Spalten-, Zeilentausch bzw Spiegelung auf diese zurückgeführt werden
+
+Wir entscheiden uns für 3 und müssen deshalb für den Block folgende 18 Varianten betrachten
+
+oo 
+
+3 Varianten pro Zeile, sind 9 Vrianten
+
+
+o
+o
+3 Varianten pro Spalte, sind 9 Vrianten
+
+
+Alle anderen Varianten können wir ignorieren, da sie nicht minimal sind. Daraus könnne folgende Varianten konstruiert werden, alle anderen sind sicher nicht minimal
+
+Block 00 und Block 01
+o|oo
+-+--
+
+o|..
+.|oo
+-+--
+
+                       
+o|o
+.|o
+-+-
+
+o|.
+.|o
+.|o
+-+-
+
+Block 00 und Block 10
+o|
+-+
+o|
+
+o.|
+--+
+.o|
+
+Das ergibt 8 Möglichkeiten
+
+
+
+
+
+
+
+
+
+
+
+
+
+height(Block):=min(height(Band)+height(Blockmembers),maxHeight)
+width(Block):=min(width(Stack)+width(Blockmembers), maxWidth)
+    Vereinfachung: height(Blockmembers)=width(Blockmembers)=count(Blockmembers)
+    height(Band)= height(Block links) oder 0, falls dieser nicht existiert
+    width(Stack)= width(Block oberhalb) oder 0, falls dieser nicht existiert
+
+
+Beispiel:
+221
+100
+000
+
+1 |11|1
+ 1|  | 
+--+--+-
+1 |  |
+--+--+-
+
+in shortcuts:
+\-*
+*00
+000
+
+B_00 =h(\)*w(\)=2*2
+    B_01:
+    h(B_00)+h(-)=2+1=3
+    w(-)=2
+B_01=3*2    
+    B_02:
+    h(B_01)+h(*)=2+1=4
+    w(*)=1
+B_02=3*1
+B_10=3*1
+B_11=leer
+B_12=leerB:03=...=leer
+
+B_00:
+    stab:
+        r()c()
+        r(01)c(01)
+        
+B_01: 
+
+
+
+
+
+
+
+
+
+
+
+    
+
 
 
             
