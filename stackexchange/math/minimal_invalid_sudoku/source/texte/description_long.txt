@@ -1,0 +1,145 @@
+description_01.txt offen
+
+Datum 2026-02-05 07:39:55
+
+
+
+# allSymbolCellRepresentatives(aClueCount)
+
+"allSymbolCellRepresentatives(aClueCount)" erzeugt alle standardisierten Sudokus mit "aClueCount" Clues.
+
+
+"allSymbolCellRepresentatives(aClueCount)" ruft "all01CellRepresentatives(aClueCount)" und "restrictedGrowthSequence(aClueCount)" auf
+
+"all01CellRepresentatives(aClueCount)" erzeugt alle möglichen standardisierten 0-1-Sudokus mit "aClueCount" clues. In einem 0-1-Sudokus werden die Clues durch 1 ersetzt, und die leeren Felder durch 0.  Eine restrictedGrowthSequence ist eine Folge mit der Eigenschaft:
+    a(1)=1
+    a(n+1 in {1,...,max{a(1),...,a(n)} }
+Man erhält alle, bis auf Isomorphie Konfigurationen, wenn man jedes 01-Sudoku mit jeder restrictedGrowthSequence kombiniert, wobei die 1-Positionen immer in der selben Reihenfolge durch die Glieder der jeweiligen restrictedGrowthSequence ersetzt werden. Belegungen, die den Sudoku-Regeln widersprechen müssen eliminiert werden.
+
+Beispiel:
+
+01-Cell-Repräsentanten
+
+    +--+-+
+    |1.|1|
+    |.1|.|
+    +--+-+
+
+alle restrictedGrowth-Folgen:
+111,112,121,122,123,
+
+Wenn wir das 01-Cell-Repräsentanten von links nach rechts mit den Folgengliedern belegen, müssen wir die ersten drei Belegungen verwerfen, da sie den Sudoku-Regeln widersprechen
+
+    +--+-+    +--+-+    +--+-+
+    |1.|1|    |1.|2|    |1.|1|
+    |.1|.|    |.1|.|    |.2|.|
+    +--+-+    +--+-+    +--+-+
+di Beiden letzten Belegungen liefern gültige Konfigurationen:
+
+    +--+-+    +--+-+
+    |1.|2|    |1.|3|
+    |.2|.|    |.2|.|
+    +--+-+    +--+-+
+    
+Alle anderen Konfigurationen mit 3 Clues in diesen Positionen sind dann zu einer dieser beiden Konfigurationen isomorph.
+Aus einem 01-Cell-Repräsentanten und einer RestrictedGroth-Folge wir mittels der Prozedur "fillSudokuWithSymbols(sudoku, symbols)" ein Symbol-Cell-Repräsentant, also eine Konfiguration, erzeugt.
+
+Duplikate werden vermieden, indem man für jeden möglichen Repräsentanten den man erzeugt, die Stabilisatoren der s ursprünglichen 01-Cell-Repräsentanten anwendet, und die Symbole der jeweils so erhaltenen Konfiguration permutiert, und zwar so, dass wieder die gleiche Reihenfolge, wie bei der Ersetzung der 01-Cell-Repräsentanten verwendet wird
+
+Beispiel:
+
+    +-+-+-+
+    |1|2|3|
+    +-+-+-+
+    |3|.|.|
+    +-+-+-+
+    
+Anwenden des neben der Identität einzigen Stabilisators der 01-Cell-Repräsentanten, also Permutation der beiden rechten Stapel,  ergibt
+
+    +-+-+-+
+    |1|3|2|
+    +-+-+-+
+    |3|.|.|
+    +-+-+-+
+
+Umbenennung der Symbole, wenn man wieder von links nach rechts geht, ergibt
+
+    +-+-+-+
+    |1|2|3|
+    +-+-+-+
+    |2|.|.|
+    +-+-+-+
+
+da man die Symbole 2 und 3 vertauschen muss. Dieses kommt in der Sortierreihenfolge vor der ursprünglichen Konfiguration, also ist die ursprüngliche Konfiguration keine Repräsentanten sondern nur diese letzte.
+## all01CellRepresentatives(aClueCount)
+"all01CellRepresentatives(aClueCount)" erzeugt alle möglichen standardisierten 0-1-Sudokus mit "aClueCount" Clues. Dazu ruft es 
+"allWeightBlockRepresentatives(aClueCount)" auf. Dieses erzeugt alle möglichen 3*3 Matrizen nichtnegativer ganzer Koeffizienten, wobei eine Koeffizienten eine Block einer Konfiguration repräsentiert und der Wert des Koeffizienten die Anzahl der Clues im Block. Zu jeder dieser 3*3 Matrizen, also jedem Weight-Block-Repräsentanten, erzeugt die Prozedur alle möglichen, standardisierten 01-Cell-Repräsentanten, bei denen die Anzahl der Einsen in einem Block gleich dem entsprechendem Koeffizienten der WieghtBlock-Matrix ist. 
+Dabei wird folgendermaßen vorgegangenDie Blöcke werden in der Sudoku-Ordnung durchlaufen, von links oben zeilenweise nach rechts unten. Blöcke in denen keine Clues sind, können übersprungen werden. Wird ein Block mit k Einsen gefüllt, ist kann diese Befüllung verworfen werden, wenn der Block Zeilen und Spalten Permutationen innerhalb des Bandes und des Stapels des Blocks nicht optimiert werden kann. Es brauchen  da aber nur jene Permutationen betrachtet werden, die die Blöcke nicht mehr verändern, die links bzw. oberhalb des Blockes stehen, wo die Einsen also schon festgelegt wurden. Das sind also die Stabilisatoren der bisher festgelegten Blöcke. Ob eine 01-Konfiguration letztlich ein Optimum ist, kann jetzt noch nicht endgültig bestimmt werden, da ja auch die globalen Transformationen berücksichtigt werden müssen. Wir wollen aber jetzt schon die Anzahl der Kandidaten, die wir weiter untersuchen müssen, möglichst klein halten. ist c der größte Blockspaltenindex, der von einer Eins in einem Block oberhalb belegt ist, dann sind alle Spalten mit dem Blockspaltenindex 0 bis c mit Einsen in mindestens einem Block oberhalb belegt. Denn gäbe es eine Spalte mit einem Index i<r, die nicht belegt ist, dann könnte man durch vertauschen der Spalten i und r eine kleinere Konfiguration erhalten. Entsprechendes gilt für die Zeilen. Wenn ich also die optimalen Belegungen eines Blockes mit k Einsen finden will, muss ich nicht alle C(9,k) Belegungen des Block untersuchen, sondern kann mich auf die C( (r+k)*(c+k), k) Belegungen des Unterrechtecks der Zeilen 0 bis r+k und der Spalten 0 bis c+k beschränken. Denn selbst wenn alle k Punkte außerhalb des Rechteckes liegen, dass durch die schon belegten Spalten der Blöcke oberhalb und links bestimmt sind, können dann nur die neuen Spalten c+1,....c+k bzw. die Zeilen r+1,...,r+k belegt werden, da ja keine Spalte oder Reihe dazwischen leer sein dar, da der Block dann sicher nicht optimal wäre und man diese Belegung sofort ausscheiden kann.
+
+?Bessere Beschreibung:
+
+Ist r der größte Index der durch Einsen in den schon belegten Böcken links und c der größte Stapelzeilenindex der durch Einsen der Blöcke unterhalb belegt ist, dann ergibt sich aus der Optimalitätsforderung sofort, dass alle Bandzeilen mit einem Index <=r und alle Stapelspalten mit einem Index <=c schon durch Einsen in den vorangegangen Blöcke belegt sein müssen, und da die k Punkte nur aus dem Rechteck 0,...,r+k x 0,...,c+k gewählt werden können. Andernfalls wäre der Block nicht optimal. Stellungen, bei denen die Zeile und Spalte nicht zusammenhängend ist, können verworfen werden. Bei jeder erhalten Auswahl kann ich dann alle Permutation Anwenden, die die Positionen der Einsen der vorangegangene Blöcke nicht verändern und dann noch alle Belegungen verwerfen, wo diese Permutationen zeigen, dass die Belegung nicht optimal ist, Das schränkt die Auswahl der Belegungen ziemlich ein, und der Aufwand ist gering. 
+
+Beispiel:
+    +-+-+-+
+    |1|1|2|
+    +-+-+-+
+    Für den ersten Block ergibt sich nur als mögliche Auswahl die Position (0,0) (r=c=-1)
+    Für den zweiten Block kann die Eins aus dem Rechteck [0,1]x[0] gewählt werden. Da gibt es zwei verschieden Positionen. Permutationen gibt es keinen, die betrachtet werden müssen
+    
+    +-+-+--+    +-+-+--+
+    |1|1|..|    |1|.|..|
+    |.|.|..|    |.|1|..|
+    |.|.|..|    |.|.|..|
+    +-+-+--+    +-+-+--+
+
+    Es sind als nur jeweils C(6,2) Positionen zu betrachten. Im ersten Fall gibt es 2!*2! Permutationen, die die vorhandene Einsen nicht verändern, im zweiten Fall 2!. Durch diese Lassen sich sofort einige Belegungen ausschließen, sodass im ersten Fall 6, im zweiten Fall 8 übrigbleiben, von jeweils 15. Die Blöcke
+    
+    +-+-+--+    +-+-+--+
+    |1|.|11|    |1|.|..|
+    |.|1|..|    |.|1|11|
+    |.|.|..|    |.|.|..|
+    +-+-+--+    +-+-+--+
+    
+    können durch lokale Optimierung nicht ineinander übergeführt werden, durch globale jedoch schon:
+    Vertauscht man bei der zweiten Konfiguration die Blöcke 1 und 2 und die Zeilen 1 und 2, erhält man Konfiguration 1, die kleiner als Konfiguration 2 ist. Konfiguration kann also verworfen werden.
+    
+    Hat man alle relevanten Konfiguration erzeugt, dann wendet man auf jeden die 
+    
+        für jeden noch vorhandene Konfiguration testen wir nun, ob sie optimal ist. wenn nicht, wrd sie verworfen
+        
+        lokale Optimierung:
+        ???
+        für jede Konfiguration K der WeightBlock Repräsentanten:
+            bestimme jede plausible 01Cell Konfiguration K, und für jedes dieser K:
+                für jede WeightBlock-Stabilisator "stab":
+                    berechne K' := stab(k)
+                    ermittle das lokale Optimum K" von K'
+                    wenn K">K, dann verwirf K
+                    wenn K"=K ist, dann merke dir stab und die lokalen Stabilisatoren
+                    andernfalls kommt K zu den 01Cell-Optima
+                
+        lokale Optimierung:
+            durchlaufe die Blockmatrix zeilenweise von  links oben nach rechts unten:
+            Die  belegten Zeilen des Bandes i sind für die Blöck der Spalten 0,1 und die Zeilen [0,...,r(i,0)], [0,...,r(i,1)] und [0,...,r(i,2)].
+            
+            Eine zulässige Zeilenpermutation muss die Zeilen [0,...,r(i,0)] auf sich selbst abbilden, da sonst der erste Block nicht zeilenzusammenhängend ist. Damit müssen auch die Zeilen [r(0,i)+1,...,3] auf sich selbst abgebildet sein. Ist r(i,1) größer als r(i,0), dann muss auch [r(i,1)+1,...,3] auf sich selbst abgebildet werden, da sonst die Struktur bis zu diesem zweiten Block nicht zeilenzusammenhängend wäre und damit nicht optimal.
+ 
+            allgemein definieren wir, die unter (b(j))und obere (t(j)) Grenze, die sich aus den drei Blöcken ergeben und erhalten die folgenden Grenzen für eine Band (??? noch unklar formuliert)
+
+            
+                   { 0, j=0
+            b(j) = {
+                   { min(t(j-1)+1, 3)  t(j)=max{r(i,0), ..., r(i,j)}, j>0
+
+            0       [0] [1] [2]
+            0 1     [0] [1] [2]
+            0 2     [0] [12]
+            0 1 2   [0] [1] [2]
+            1       [01] [2]       
+            1 2     [01] [2]
+            2       [012] 
+            
+            Die Anzahl der Permutationen, die sich daraus ergibt, ist überall 1, außer in den Fällen "0 2" und "1 2", wo sie 2! ist und im Fall "2", wo sie 3! ist.Der letzte Fall kann nur auftreten, wenn im ersten besetzten Block eines Bandes  mindestens 3 Einsen sind, und in jeder Zeile mindestens eine steht. Für die anderen beiden Fälle muss im ersten Block mindestens zwei Einsen stehen, die sich über die ersten beiden Zeilen des Blocks besetzen.
+        
+        (3!)^2  (3!*1!)^2  (2!*2!)^2  (2!*1!**1!)^2

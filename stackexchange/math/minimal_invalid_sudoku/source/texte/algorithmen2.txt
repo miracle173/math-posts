@@ -1,0 +1,337 @@
+Wieviele Anfangskonfigurationen gibt es?
+Man kann C(81,4) Feldertupel bestimmen, die kann man mit 9^4 verschiedenen Werten belegen. Das sind etwa 10^10 Konfigurationen. Nicht alle diese sond widerspruchsfrei, also werden wir etwas weniger haben abervermutlich liegt die krreckte Zahl in dieser Größenordnung unddeshalb zu groß, 
+
+Kann man ein Sudoku in ein anderes Sudoku durch Zeilen-, Spalten-,Band-, Stapel- oder Symbolpermutationen oder Spieglung überführen, dann stellt das eine Äquivalenzrelation dar. Wenn wir zu einem Element einer Äquivalenzklasse einer Konfiguration eine Sudoku gefunden haben, dann haben wir zu allen Sudokus der Äquivalenzklasse ein vollständiges Sudoku gefunden. 
+
+ Wir wollen für jede Äquivalenzklasse einen eindeutigen Repräsentanten bestimmen. Dazu legen wir eine Totalordnung auf den Sudokus fest. Das Größte Element jeder Klasse ist der Reoräsentant. Da eine Klasse endlich ist und das eine Totalordnung ist, ist der Repräsentant eindeutig bestimmt
+
+
+???die antisymmetrisch sein soll, d.h, wenn a<=b und b<=a, dann a=b. Au0erdem soll sie total sein, d.h. entweder a<=b oder b<=a.
+
+S ... Sudoku
+pi(S) Permutation
+
+S = s(i,j; k, l) = Matrix  s(3*i+k, 3*j+l= Folge s(27*i + 9*j +3*k +l)
+
+B(i, j, S):= 0, wenn alle Zellen von Block B_{i,j}des Sudokus S leer sind
+             1, sonst
+ 
+N(S) = B(0,0, S) + B(0, 1, S1) + ... + B(2, 1, S1)) + B(2, 2 , S)
+
+
+B(S):=(B{0,0, S), B(0, 1, S), ..., B(2, 1, S)), B(2, 2 , S)
+    
+W(i, j, S):= Anzahl der Zellen !=0 im Block B_{i,j} des Sudokus S1
+W(S):=  (W(0,0, S), W(0, 1, S), ..., W(2, 1, S)), W(2,2 , 1)
+
+
+e(x):=  0, wenn x=0
+        1, sonst
+b(i, j, S) := (e(s(i,j;0,0), e(i, j; 0, 1), ..., e(i, j; 1, 2), e(i, j; 2, 2))
+b(S) := (b(0, 0, S), b(0, 1, S), ..., b(2, 1, S), b(2, 2, S)
+
+pi(S, i, j) ist jene Symboltransformation, sodass pi(S) minimal wird,
+d.h.  pi(0, 0, S) wird minimiert, danach  pi(0, 1, S), usw.
+
+pi(S) := pi(0, 0, S), pi(0, 1, S), ..., pi(S, 2,1), pi(S, 2, 2))
+
+Ordnung S1<<S2:
+(N(S1) < N(S2)) oder
+(N(S1) = N(S2)) und (B(S1) < B(S2)) oder 
+(N(S1) = N(S2)) und (B(S1) = B(S2)) und (W(S1) < W(S2))
+(N(S1) = N(S2)) und (B(S1) = B(S2)) und (W(S1) = W(S2)) und (b(S1) < b(S2)) oder
+(N(S1) = N(S2)) und (B(S1) = B(S2)) und (W(S1) = W(S2)) und (b(S1) = b(S2)) und pi(S1) < pi(S2), oder
+(N(S1) = N(S2)) und (B(S1) = B(S2)) und (W(S1) = W(S2)) und (b(S1) = b(S2)) und (pi(S1) = pi(S2)) und S1<S2
+
+
+              
+Beispiel:
+
+    Sudoku 1:        Sudoku 2:
+    ..9|...|...      ..1|...|...
+    .7.|.9.|...      .2.|.1.|...
+    ..4|...|...      ..3|...|...
+    ---+---+---      ---+---+---
+    ...|...|...      ...|...|...
+    ...|...|...      ...|...|...
+    ...|...|...      ...|...|...
+    ---+---+---      ---+---+---
+    ...|...|...      ...|...|...
+    ...|...|...      ...|...|...
+    ...|...|...      ...|...|...
+
+Sudoku 1 wird durch pi auf Sudoku2 transformiert
+
+
+
+
+= Algorithmus zum Feststellen, ob eine Konfiguration  mit 4 Vorgabelementen in jedem Sudoku ist
+Der Algorithmus schafft das nicht für alle Konfiguration zu lösen.
+
+Der Algorithmus würde rekursiv arbeiten. Das vermeiden wir aber, indem wir davon ausgehen, dass widdrspruchsfreie  Konfigurationen mit 3 Vorgaben immer in allen Sudokus enthalten sind. Das muss noch gezeigt werden. 
+
+###############################################################
+Satz
+##################################################
+Angenommen wir haben eine Konfiguration mit N-1 Blöcken, (A_1,...,A_{n-1}), die Ausgangskonfiguration, von der wir wissen, dass diese Konfiguration auf ein vollständiges Sudoku erweitert werden kann. Die Ausgangskonfiguration enthält die Symbole a_1,...,a_i, b_1,...,b_j. Wir haben nun einen weiteren leeren Block und einige Symbole vorgegeben, b_1,...,b_j,c_1,...,c_k. Die Symbole a_1,...,a_i, b_1,...,b_j, c_1,...,c_k sind paarweise verschieden.  
+Wir wissen, dass es ein gültiges Sudoku gibt, dass (A_1,...,A_{n-1}) enthält. Dann muss es auch eine Konfiguration E_n der Symbole b_1,...,b_j, c_1,...,c_k geben, sodass (A_1,...,A_{n-1},A_n) im Sudoku enthalten ist, bzw. gibt es zur Konfiguration (A_1,...,A_{n-1},A_n) ein gültiges Sudoku
+Ist T die Menge jener Zeilen- und Spaltentransformationen, die A1,...,A_{n-1} in sich selbst überführt. 
+
+
+ Wir sollen nun zeigen, dass es zu jeder widerspruchsfreien Platzierung dieser Symbole in diesem Block ebenfalls in jedem Sudoku enthalten ist, dass die Ausgangskonfiguration enthält. Sei T die Menge jener Zeilen- und Spaltentransformationen, die E1,...,E_{n-1} in sich selbst überführt. 
+Für jede gültige Konfiguration A=K(B_n; a_1,...,a_i,b_1,...,b_j, c_1,...,c_k)} des Blockes B_n, und jede gültige Konfiguration E=K(B_n; a_1,...,a_i,b_1,...,b_j) gilt
+Es gibt ein t=t(A,E) aus T, sodass t(A|a_1,...,a_i,b_1,...,b_j)=E ist. Dann ist E in jeder vollständigen Erweiterung von B1,B2,...,B{n-1},E in jeder vollständigen Erweiterung von B1,...,B_{n-1} enthalte4n
+
+Anmerkungen: Bei den Beispielen haben wir nur Zeilenbeschränkungen. Natürlich sind auch  Spaltenbeschränkungen möglich.
+Beispiel 1:
+    A:          E:        t:
+    12. .3.     12. ...   r_(23)c_(13)j_(12,32)
+    ... ..2     ... ...
+    ... 1..     ... 23.
+    
+Beispiel 2:
+    A:          E:        t:
+    12. 4..     12. ...   hier gibt es keine geeignetes t, 
+    ..3 ...     ... ...   da die letzte Reihe nicht "freigemacht" werden kann
+    ... 123     ... 4..
+
+Beispiel 3:
+    A:          E:        t:
+    ... 12.     ... 1..   hier gibt es keine geeignetes t, 
+    ... ...     ... .2.   da durch jede Permutation die Symbole 
+    ... ...     ... ...   wieder in der gleichen Zeile sind.
+    {1,2}       {1,2}
+
+Beispiel 4:
+    A:          E:        t:
+    12. 3..     12. ...   hier gibt es keine geeignetes t
+    ... 12 .     ... ...   da jedes gültige t die erste Zeile nicht bewegt,
+    ... ...     ... 3..   3 also immer in der ersten Zeile bleibt
+    {3}
+    
+Beispiel 4:
+    A:
+     1 2..
+    12 .3.
+     2 ..1
+
+       112
+        2
+        
+        
+Algorithmus:
+    Entscheidet, der leere Block einer Konfiguration um mehrere freie und maximal einem gebundene Symbol erweitert werden kann
+        
+        
+        
+        
+        
+
+Wir haben nun eine Konfiguration mit n, hier also n=4, und gehen davon aus, dass  jede Konfigurationen mit n-1 Elementen in allen Sudokus enthalten ist. Wir machen den probieren nacheinander jedes der 4 gegebenen Elemente durch, und stoppen, sobald uns gelungen ist zu zeigen, das in einem Sudoku, dass die 3 Elemente enthält, auch das vierte Element in der gewünschten Position enthalten ist. Am erfolgreichsten scheint es, Elemente zu testen, die alleine in einem Block sind. Gehen wir bis auf weiters davon aus, dass dies der Fall ist. Nehmen wir den Fall mit 4 verschiedenen Symbolen, das wären dann 1,2,3 4. Wir wissen, dass die Konfiguration ohne 4 in jedem Sudoku vorhanden ist. Suchen wir also einenfiguration der Ziffern 1,2,3 im Sudoku und einen Block der dem Block der Vorgabe der Ziffer 4 entspricht. Schauen wir un nun diesen 4-Block an, es gibt da folgende Möglichkeiten, wie die Ziffern 1,2,3 bezüglich des 4-Blocks gruppiert sidn
+
+     (1)   (2)   (3)   (4)     (5)  (6)    (7)   (8)   (9)   (10)
+     
+    ...123 ...12 ...1  ...12  ...1  ...12  ...1  ...1  ...1  ...
+    ...    ...3  ...2  ...    ...2  ...    ...2  ...   ...   ...
+    ...    ...   ...3  ...    ...   ...    ...   ...   ...   ...
+                       3      3        3      3  2  3     23    123
+
+Die 3*3 Punkte stellen die Zellen des Blocks dar. Die Ziffern neben den Punkten stellen die Ziffern der Konfiguration dar, die in der selben Zeile wie die Punkte stehen, aber außerhalb des Blöcks, in den anderen Konfigurationsblöcken. Entsprechend stellen die Ziffern unterhalb von drei Punkten die Konfigurationsziffern außerhalb der 4-Blockes dar, die in der gleichen Spalte wie die drei Punkte liegen. Die Zoffern im rechten unterem Eck stellen die Ziffern der Konfiguration dar, die außerhalb des 4-Blocks liegen, aber weder eine Zeile noch eine Spalte mit den 4-Block gemeinsam haben.
+
+Test:
+wir testen für alle Konsistenten Befüllungen des Blocks mit 1,2,3. Wir führen eine Kombination sämtlicher Permutationen der Spalten und Zeilen dieses Blocks durch, der die Zeilen und Spalten, wo die Werte außerhalb vorgegeben sind unverändert lassen und zusätzlich wandeln wir einen Punkt in 4. Dass sind die erlaubten Transformationen, die die vorgegebenen Werte nicht beeinflussen. Falls wir für jede dieser Anfangsbelegungen mit 1,2,3 die 4 in jede der 9 Positionen im Block bringen können, waren wir erfolgreich und die Konfiguration mit diesen Randbedingungen kommt in jedem Sudoku vor.
+Wieviele Transformationen müssen wir testen pro Randbedingung?
+
+Es gibt 3! Zeilenpermutationen und ebensoviele Spaltenpermutationen, allerdings sind nicht immer alle zulässig. Es gibt 6 Punkte die zu 4 umgewandet werden können und es gibt C(9,3)*3! Möglichkeiten, die Positionen im Block mit 1,2,3 zu belegen, wobei da wiederum nicht alle zuässig sind. Das sind 108864 Möglichkeiten, die maximal durchzutesten sind
+
+
+Beispiel:
+
+Die Vorgabeblöcke sind
+
+    ooo
+    .o.
+    ...
+
+Fann wissen wir, dass die Konfiguration 
+
+    ooo
+    ...
+    ...
+    
+ib jedem Sudoku is. Allerdings kann es als eine dieser 6 Möglichkeiten auftreten
+
+    ooo  ...  ...  o..  .o.  ..o
+    ...  ooo  ...  o..  .o.  ..o
+    ...  ...  ooo  o..  .o.  ..o
+    
+    
+    
+
+
+    (1)   (2*)  (3)   (4)     (5)  (6)    (7)   (8*)  (9)   (10)
+
+    ...123 ...12 ...1  ...12  ...1  ...12  ...1  ...1  ...1  ...
+    ...    ...3  ...2  ...    ...2  ...    ...2  ...   ...   ...
+    ...    ...   ...3  ...    ...   ...    ...   ...   ...   ...
+                       3      3        3      3  2  3     23    123
+
+
+Corollar 1) wenn vierte Farbe in leerem Block
+
+(1) reduzierbar wg 1) row und col perms
+(2) nicht reduzierbar wg  ...12
+                          ...3 
+                          123  
+(3) reduzierbar wg col perms
+(4) reduzierbar wg row und col perms
+(5) nicht direkt reduzierbar wg 2..1
+                                ...2
+                                ... 
+                                3   
+    aber reduzierbar, wenn man zuerst 1,2,4 setzt, und danach 3, das wäre dann 
+    nach Blockperm    ...4, also (9)                                     
+                      ...                                     
+                      ...                                     
+                        12                                     
+(6) reduzierbar wg row und col perm
+(7) reduzierbar nach  Block und Namensperm(3,4)
+(8) nicht reduzierbar wegen 3..1
+                            ...
+                            ... 
+                            2  3
+(9) reduzierbar wg row und col perm
+(10) reduzierbar wg row und col perm
+
+    (2*)    zerfällt in folgende Varianten
+     ...12
+     ...3 
+     ...  
+     
+     (2.1)  (2.2)  (2.3)      (2.4)      (2.5)
+     12.     12.    12. ...    1.. 2..    1. 2..
+     .3.     ..3    ... 3..    3.. ...    .3. ...
+     ...     ...    ... ...    ... ...    ... ...
+     
+     die lassen sich auflösen, wenn man zuerst den die beiden äußeren Blöcke setzt, also jene, wo nicht 1 drinnen ist. Danach kann man im mittleren Block, eventuell mach Zeolen und Spaltenpermutation, die Zahlen Setzen
+     
+                 nach Spalten   nach Spalten
+    Ausgang-     permutation    permutation
+    stellung     2.3 erreicht   2.5 erreicht
+    
+    4.. 3.. ...  4.. 123 ...    4.. 13. ...
+    ... .4. 3..  ... .4. 3..    ... .24 3..
+    ... ... ...  ... ... ...    ... ... ...
+    
+    Es bleibt dann eigentlich nichts übrig von (2*)
+    Bei (8*) können wir ebenfalls mit 1,24 beginnen und erhalten nur dann ein Problem, wenn 3 im selben Band wie 2 und im selben Stack wie 1 liegt.
+    In den andere Fällen erhalten wir, ggf nach Spiegelung und Permutation
+    ...2
+    ...
+    ...
+       14
+    was ja (9) entspricht
+    
+    Es bleibt also nur mehr
+    (8,1)      (8.2)      (8.3)      (8.4)      (8.5)      (8.6)
+    1.. 2..    1.. 2..    1.. 2..    1.. 2..    1.. 2..    1.. ...   
+    ... ...    ... ...    ... ...    ... ...    ... ...    ... 2..   
+    ... ...    ... ...    ... ...    ... ...    ... ...    ... ...   
+                                                                     
+    3.. 4..    3.. .4.    3.. ...    .3. .4.    .3. ...    .3. ...   
+    ... ...    ... ...    ... .4.    ... ...    ... .4.    ... .4.   
+    ... ...    ... ...    ... ...    ... ...    ... ...    ... ...   
+    
+    ++         +-´        +-         --         --         ..
+    ++         +-         |.         --         ..         ..
+    
+    wenn cd=12, dann b=3, e=4, ansonsten z.B, a=3, co04 oder d=4, je nachdem  welches !=1,2 ist
+    damit ist 8.2 gelöst. 8.3 ähnlich: man wählt 3 so, dass es gegenüber 12 ist, wenn es die so gibt. 8.4 ebenfalls erfüllbar, 8.5 auch 8.6. auch
+    1.. 2..  1.. 2..
+    ... ...  ... ...
+    ... ...  ... ...
+                    
+    a.. .cd  3.. ...  
+    b.. .ef  ... .4.
+    2.. ...  2.. ...
+    
+    8.1
+    
+    1.. 2.. 
+    ... ... 
+    ... ... 
+            
+    a.. d.. 
+    b.. e.. 
+    c.. f.. 
+    
+    a,b,c!=1, d,e,f!=2    
+    wenn a!=2:
+        wenn d!=1, dann a=3, d=4
+        wenn d=1, dann 
+            wenn b!=2, dann b=3, e=4 (e!=1,3 ,da d=1 b=3), 
+            wenn b=2, dann tausche Zeile b und c
+    wenn a==2:
+        dann tausche Zeile a und b
+        
+    (a!=2)?((d!=1)?(a<-3,d<-4):((b!=2)?(b<-3,e<-4):(R(b,c),*))):(R(a,b),*)
+    (a=2)?(R(a,b),*):((d=1)?((b=2)?(R(b,c),*):(b<-3,e<-4)):(a<-3,d<-4))
+    
+    (R(a,b),*):[[(R(b,c),*):(b<-3,e<-4)?(b=2)]:(a<-3,d<-4)?(d=1)]?(a=2)
+    (R(a,b),*)(R(b,c),*)(b<-3,e<-4)(b=2)(a<-3,d<-4)(d=1)(a=2)    
+    ((a,b)R,*)((b,c)R,*)(b<-3,e<-4)(b=2)(a<-3,d<-4)(d=1)(a=2)  
+
+    abR,*bcR,*b<3,e<4b=2a<3,d<4d=1a=2  
+        
+    1:(a!=2)?((d!=1)?(a<-3,d<-4)|((b!=2)?(b<-3,e<-4)|(R(b,c),g1)))|(R(a,b),g1)
+    1:(a=2)?(R(a,b),g1)|((d=1)?((b=2)?(R(b,c),g1)|(b<-3,e<-4))|(a<-3,d<-4))
+    
+    Label ist überflüssig, wir springen immer zum Start, Klammern und Beistrich bei Zeilentausch ('R(a,b)') kann man auch weglassen, ohne die Lesbarkeit entscheidend zu verschlechtern
+    Nach einem Zeilentausch wird immer zum Anfang gesprungen. MAn muss sich aber die Belegung, die man bisher erreicht hat merken und sie wird mitvertauscht. Zuweisug <- durch ~ ersetzt
+    
+    
+    
+    (a=2)?(Rab)|((d=1)?((b=2)?(Rbc)|(b~3,e~4))|(a~3,d~4))
+    
+
+      
+
+    (8.2)  
+    1.. 2..
+    ... ...
+    ... ...
+           
+    a.. .de
+    b.. .fg
+    c.. .hi
+    
+    wenn a!=2:
+        wenn {d,e} !={1,2}, dann o.B.d.A a=3, d=4
+        wenn {d,e} = {1,2}, dann 
+            wenn b!=2 dann b=3, f=4
+            wenn b=2, dann  tausch Zeile b und c
+    wenn a=2, dann tausche Zeile a und b
+                
+    
+    
+
+    
+            
+    Folgerung: 3 verschieden Ziffern aufs oder 4 Blocks  kommen in allen Sudokus vor
+    
+    vier verschiedene Ziffern, w pro Block: auch keine Problem
+    
+
+Fehlt noch: vier verschiedene Ziffern, zwei Blöcke, je 2 in einma Block
+
+    12.                
+    ... kein Problem,  
+    ...                
+    
+    1..                          1.. ...
+    2..                          2.. ...
+    ..., das einzige Problem ist ... 12. , da man 34 nicht zusammen in der untersten Zeile platzieren kann. Aber sieht man sich noch den dritten Block an 1.. ... ... , dann kann
+                                                                   2.. ... ...
+                                                                   ... 12. 34.
+    mand dort 34 problemlos platzieren.
+    

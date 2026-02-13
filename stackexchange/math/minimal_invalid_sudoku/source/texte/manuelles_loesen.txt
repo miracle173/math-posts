@@ -1,0 +1,519 @@
+Ziel dieses Artikels ist zu zeigen, dass einige Vorgaben-Konfigurationen keine unlösbaren (unsolvable) Sudokus erzeugen.
+
+Eine Konfiguration wird als unlösbar (unsolvable) bezeichnet, wenn sie widerspruchsfrei ist, es aber nicht zu einem vollständigen Sudoku erweitert werden kann.
+
+Beispiel:
++---+-+-+
+|123|.|.|
+|...|4|.|
+|...|.|4|
++---+-+-+
+Diese Konfiguration ist widerspruchsfrei, 4 kann aber in das linke Feld nicht eingefügt werden und somit kann diese Konfiguration nicht auf ein gültiges Sudoku vervollständigt werden.
+
+Lemma 1) Jede widerspruchsfreie 1-Block Konfiguration ist zu jedem Sudoku auflösbar, d.h., ist in jedem Sudoku enthalten.
+BW: Nach Umbenennen der Symbole kann man die Konfiguration erhalten
+
+Lemma 2) Jede Konfiguration mit 2 vorgegebene Feldern ist in jedem Sudoku enthalten
+BW:
+Ist es eine 1-Block Konfiguration, dann nach Lemma 1. Ist es eine Mehrblock Konfiguration, dann kann es nur eine 2-Block-Konfiguration mit jeweils einem vorgegebene Feld sein. Es gibt im wesentlichen zwei Möglichkeiten, wie die zwei  Blöcke in einem Sudoku angeordnet sein können
+
+Blockstruktur (1)
+++.
+...
+...
+
+oder
+
+Blockstruktur (2)
++..
+.+.
+...
+
+'+' bedeutet, dass der Block ein Vorgabe-Block ist, also mindestens einen Vorgabewert enthält, in unserem Fall also genau ein Vorgabe-Feld enthält.
+Alle anderen 2-Block Vorgaben können durch Spiegelung, Vertauschen der Bänder und erreicht werden.
+
+Angenommen wir haben Blockstruktur (1). Dann können wir durch Vertauschen von Zeilen und Spalten erreichen, dass wir eine der folgenden Strukturen erhalten, wobei wir bei der Darstellung die leeren Bänder die unterhalb von allen belegten Blöcken und die leeren Stacks die rechts von allen belegten Blöcken liegen, weglassen. So eine Darstellung kann eindeutig auf die vollständige Darstellung ergänzt werden.
+
+Struktur (1.1)
+1.. x..
+... ...
+... ...
+
+Struktur (1.2)
+1.. ...
+... x..
+... ...
+
+Angenommen wir haben ein beliebiges Sudoku. Wir wollen nun zeigen, dass darin die Struktur (1.1), mit x=2,  enthalten ist. Wir wählen einen beliebigen Block aus dem Sudoku, und ,gegebenenfalls nach Umbenennung der Symbole oder Permutation von Zeilen und Spalten, erhalten wir 1 in der rechten oberen Ecke. Dieser Block mit 1 ist der linke obere Block des Sudokus. Im Block rechts daneben ist an der Stelle x entweder 2, dann sind wir fertig. Oder es steht dort eine andere Zahl, die aber nicht 1 sein kann, da die Vorgabe ja Widerspruchsfrei ist. Dann benennen wir die Symbole um, sodass x nun 2 wird. Struktur (1.1) ist also, wenn x 2 ist, in jedem vollständigen Sudoku enthalten, gegebenenfalls nach Durchführung geeigneten Transformationen. Der Fall x=1 kann bei Struktur nicht vorkommen, da die Vorgabe dann nicht widerspruchsfrei wäre.
+
+Bei Struktur (1.2) gehen wir ähnlich vor. Ist soll x gleich 1 sein, ist es aber noch nicht, dann muss 1 irgendwo in der zweiten oder dritten Zeile des Blocks stehen. mit Hilfe von Spalten und Zeilentausch kann 1 an die Position des x gebracht werden.  Soll x gleich 2 sein, ist es aber noch nicht, dann gibt es zwei Fälle. 2 steht in der zweiten oder dritten Zeile, dann kann es wieder durch Zeilen- und Spaltentausch in die Position des x gebracht werden, ohne die Position der 1 im ersten Block zu verändern. Steht 2 aber in der ersten Zeile, dann können wir es nicht durch Zeilentausch in die zweite Zeile bringen, da wir dadurch auch die Position der Aber wir haben zwei oder drei Ziffern ungleich1 in der zweiten Zeile dieses Blocks. Vertauschen wir die Benennung dieser Ziffer und der 2, so können wir die 2 dann durch Zeilen und Spaltentausch dann an die Stelle x bringen.
+Diese Beweistechnik werden wir auch später immer wieder verwenden.
+
+Struktur 2.1
+
+1..
+...
+...
+
+    x..
+    ...
+    ...     
+
+Diese Stellung kommt natürlich auch in jedem vollständigen Sudoku vor. Da kein anderer Vorgabe-Block im selben Band oder Stapel liegt, können wir Zeilen und Spalten dieses Blocks beliebig permutieren. WIr können also jedes Element dieses Blocks an jede beliebige Stelle bringen.
+
+Unmittelbar klar ist deshalb auch
+Lemma 3)
+Kann eine auflösbare Vorgabe um einen freien Block erweitert werden, dann können in diesem beliebige Vorgaben stehen und die dadurch erhaltene Konfiguration ist wiederum in jedem vollständigen Sudoku enthalten.
+
+Lemma 3) Jede widerspruchsfreie Vorgabe von 3 Feldern ist in jedem Sudoku enthalten.
+Beweis: Nehmen wir zuerst den Fall, dass 3 verschiedene Symbole vorgegeben sind. Sind diese alle in einem Block vorgegebenen, dann ist dieser Block in jedem Sudoku enthalten nach Lemma 1.  Sind sie nicht in einem Block enthalten, dann sind sie auf zwei oder drei Blöcke verteilt. Es gibt dann jedenfalls mindestens einen Block, der genau eine Vorgabe enthält. Egal wie die beiden Werte, die außerhalb dieses Blocks liegen, vorgegeben sind, es gibt dazu jeweils mindestens ein vollständiges Sudoku, dass diese Vorgabe mit diesen beiden Werten enthält. Wir wählen dieses Sudoku. Es gibt nun grundsätzlich 3 Möglichkeiten, wie diese beiden Werte, die nach dem wir sie möglicherweise umbenannt haben, 1 und 2 sind, um den Block positioniert sein können:
+
+Umgebung (1)
++---+
+|...| 1, 2
+|...|
+|...|
++---+
+
+Umgebung (2)
++---+
+|...| 1
+|...| 2
+|...|
++---+
+
+Umgebung (3)
+ 1
++---+
+|...| 2
+|...|
+|...|
++---+
+ Die Symbole außerhalb des Blocks stehen in den entsprechenden Zeilen bzw. Spalten, es ist aber nicht von Bedeutung, in welchem Block sie genau stehen. Das Symbol im Block, ist das Symbol 3. Wir können jedes beliebige Symbol im Block, außer 1 und 2, in 3 umbenennen. Wir wissen vorläufig nicht, wie ein möglicher Block für eine gültiges Sudoku ausschaut, wir wissen nur, dass er widerspruchsfrei sein muss. Also kann im Block 1 nicht in einer Zeile oder Spalte stehen, die durch die 1 außerhalb für die 1 im Block gesperrt ist. Wir müssen also Zeigen, dass wir von einem beliebigen widerspruchsfreien Block, bei dem also 1 und 2 im Block widerspruchsfrei positioniert sind, nach Umbenennung einer geeigneten Ziffer, die nicht 2 oder 3 ist, nach Permutation von  Zeilen und Spalten, die die Position der Zeile und Spalten, in denen 1 und 2 außerhalb des Blockes stehen, unberührt lassen, auf die gewünschte Zielkonfiguration kommen. 
+
+ 
+ Zu jeder Umgebung gibt e s 9 Zielkonfigurationen, denn 3 kann im Block 9 verschiedene Positionen einnehmen.
+ Zur Umgebung (1) gibt es C(6,2) Ausgangskonfigurationen, nämlich jene bei denen 1 und 2 in der zweiten bzw. dritten Zeile positioniert sind. Da jede der Ziffern, die nicht 1 oder 2 sind, in 3 umbenannt werden kann, kann man das Problem auch so formulieren:
+ Für jede der C(6,2) widerspruchsfreien Konfigurationen der Umgebung zeige, dass man durch Zeilen- und Spaltenpermutation eine Punkt auf jede der 9 Positionen des Blocks bringen kann. Das kann man nun durch überlegen, man kann das natürlich auch mit Hilfe eine kleinen Programms automatisch überprüfen. Wir wollen es hier kurz durchdenken:
+ Wenn in der Zielkonfiguration oben ein Punkt stehen soll, dann ist das schon in der Ausgangskonfiguration erfüllt, da oben nur Punkte stehen können. Wenn in der Zielkonfiguration in der zweiten oder dritten Zeile ein Punkt stehen soll, dann kann dies auch erreicht werden.: in der gewünschten Zeile stehen mindesten zwei Punkte in der Ausgangskonfiguration, da höchstens zwei der 3 Positionen durch 1 und 2 belegt sein können. Durch vertauschen der Spalten kann man dann den Punkt in die gewünschte Spalte bringen. Ähnliche Überlegungen kann man auch die beiden anderen Umgebungen durchführen.
+ Wenden wir uns nun dem Fall zu, dass wir nur zwei verschiedene Symbole haben. Die Umgebungen sind wieder wie vorher, allerdings befindet sich jetzt im Block nicht die Ziffer 3 sondern die Ziffer 1. Umgebung (1) ist Unproblematisch. Die Ziffern 1 und 2 im Block befinden sich nur in der zweiten und dritten Zeile, sowohl bei der Ausgangskonfiguration als auch bei der Zielkonfiguration. Die Ziffer 1 kann durch Permutation der beiden unteren Zeilen und der Spalten von jeder Position der zweiten oder dritten Zeile in jede andere Position in diesen zwei Zeilen gebracht werden.
+ 
+ Mehr Sorgfalt erfordern die beiden anderen Umgebungen. Betrachten wir zuerst Umgebung (2). Durch Spaltentausch können wir die Blöcke mit dieser Umgebung auf zwei Fälle transformieren:
+ 
+ 
+ Umgebung (2.1)
++---+
+|...| 1
+|1..| 2
+|...|
++---+
+
+Umgebung (2.2)
++---+
+|...| 1
+|...| 2
+|1..|
++---+
+
+--
+
+ Umgebung (2.1.1)
++---+
+|2..| 1
+|1..| 2
+|...|
++---+
+
+ Umgebung (2.1.1)
++---+
+|.2.| 1
+|1..| 2
+|...|
++---+
+
+ Umgebung (2.1.3)
++---+
+|...| 1
+|1..| 2
+|2..|
++---+
+
+ Umgebung (2.1.4)
++---+
+|...| 1
+|1..| 2
+|.2.|
++---+
+
+Umgebung (2.2.1)
++---+
+|2..| 1
+|...| 2
+|1..|
++---+
+
+Umgebung (2.2.2)
++---+
+|.2.| 1
+|...| 2
+|1..|
++---+
+
+
+ 
+ Fragestellung
+ Wie komme ich von (2.1.1), (2.1.2), (2.1.3), (2.1.4), (2.2.1), (2.2.2) auf (2.1) bzw. auf (2.2)
+ 
+ Das sind also 12 Probleme.
+ 
+ Von (2.1.1), (2.1.2), (2.1.3), (2.1.4) auf (2.1), da ist nicht zu tun, ebenso von (2.2.1) bzw. (2.2.2) auf (2.2). Es bleiben also 6 Probleme über. nämlich von (2.1.n) auf (2.2) und von (2.2.n) auf (2.1)
+ 
+Betrachten wir (2.1.1) auf (2.2)
+ 
+
+
+ Umgebung (2.1.1)
++---+
+|2..| 1
+|1..| 2
+|...|
++---+
+
+ Umgebung (2.2)
+
+aus
+
++---+
+|2..| 1
+|1..| 2
+|...|
++---+
+
+folgt
++---+
+|...| 1
+|...| 2
+|1..|
++---+
+
+
+entweder  
++-+-+--+
+|2|1|..|
+|1|2|..|
+|.|.|12|
++-+-+--+
+
+oder
++-+-+-+   
+|2|1|.|   
+|1|.|2|   
+|.|2|1|   
++-+-+-+   
+          
++-+-+--+  
+|2|1|..|  
+|1|.|2.|  
+|.|2|.1|  
++-+-+--+  
+          
++-+-+--+  
+|2|1.|.|  
+|1|..|2|  
+|.|.2|1|  
++-+-+--+  
+          
++-+-+---+ 
+|2|1.|..| 
+|1|..|2.| 
+|.|.2|.1| 
++-+-+---+ 
+
+
+das funktioniert nicht
+
+#######################
+
++-+-+-+   
+|2|1|.|   
+|1|.|2|   
+|.|2|1|   
++-+-+-+ 
+
++-+-+-+-+-+-+-+-+-+   
+|2 . .|1 . .|. . .|   
+|1 . .|. . .|2 . .|   
+|. . .|2 . .|1 . .|   
++-+-+-+-+-+-+-+-+-+
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
++-+-+-+-+-+-+-+-+-+
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
++-+-+-+-+-+-+-+-+-+
+
+
++-+-+-+-+-+-+-+-+-+   
+|2 . .|1 . .|. . .|   
+|1 . .|. . .|2 . .|   
+|. . .|2 . .|1 . .|   
++-+-+-+-+-+-+-+-+-+
+|. 1 2|. . .|. . .|   
+|. . .|. 1 2|. . .|   
+|. . .|. . .|. 1 2|   
++-+-+-+-+-+-+-+-+-+
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
++-+-+-+-+-+-+-+-+-+
+
++-+-+-+-+-+-+-+-+-+   
+|2 . .|1 . .|. . .|   
+|1 . .|. . .|2 . .|   
+|. . .|2 . .|1 . .|   
++-+-+-+-+-+-+-+-+-+
+|. 1 2|. . .|. . .|   
+|. . .|. 1 .|. 2 .|   
+|. . .|. . 2|. . 1|   
++-+-+-+-+-+-+-+-+-+
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
++-+-+-+-+-+-+-+-+-+
+
++-+-+-+-+-+-+-+-+-+   
+|2 . .|1 . .|. . .|   
+|1 . .|. . .|2 . .|   
+|. . .|2 . .|1 . .|   
++-+-+-+-+-+-+-+-+-+
+|. 1 .|. 2 .|. . .|   
+|. . 2|. 1 .|. . .|   
+|. . .|. . .|. 1 2|   
++-+-+-+-+-+-+-+-+-+
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
++-+-+-+-+-+-+-+-+-+
+
++-+-+-+-+-+-+-+-+-+   
+|2 . .|1 . .|. . .|   
+|1 . .|. . .|2 . .|   
+|. . .|2 . .|1 . .|   
++-+-+-+-+-+-+-+-+-+
+|. 1 .|. . .|. 2 .|   
+|. . 2|. 1 .|. . .|   
+|. . .|. . 2|. . 1|   
++-+-+-+-+-+-+-+-+-+
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
++-+-+-+-+-+-+-+-+-+
+
+-----------------------
++-+-+-+-+-+-+-+-+-+   
+|1 . .|. . .|2 . .|   
+|2 . .|1 . .|. . .|   
+|. . .|2 . .|1 . .|   
++-+-+-+-+-+-+-+-+-+
+---------------------------
+                    row stack symbol
++-+-+-+-+-+-+-+-+-+   
+|1 . .|. . .|2 . .| 1  123  ()
+|2 . .|1 . .|. . .| 2 
+|. . .|2 . .|1 . .| 3 
++-+-+-+-+-+-+-+-+-+
+
++-+-+-+-+-+-+-+-+-+   
+|1 . .|. . .|2 . .| 1  321  (12)
+|. . .|2 . .|1 . .| 3  
+|2 . .|1 . .|. . .| 2 
++-+-+-+-+-+-+-+-+-+
+
++-+-+-+-+-+-+-+-+-+   
+|2 . .|1 . .|. . .| 3  231  ()
+|. . .|2 . .|1 . .| 2 
+|1 . .|. . .|2 . .| 1 
++-+-+-+-+-+-+-+-+-+
+
++-+-+-+-+-+-+-+-+-+   
+|. . .|2 . .|1 . .| 3  312  ()
+|1 . .|. . .|2 . .| 1 
+|2 . .|1 . .|. . .| 2 
++-+-+-+-+-+-+-+-+-+
+
++-+-+-+-+-+-+-+-+-+   
+|2 . .|1 . .|. . .| 2  132  (12)
+|1 . .|. . .|2 . .| 1 
+|. . .|2 . .|1 . .| 3 
++-+-+-+-+-+-+-+-+-+
+
++-+-+-+-+-+-+-+-+-+    
+|2 . .|1 . .|. . .| 2  231  ()
+|. . .|2 . .|1 . .| 3 
+|1 . .|. . .|2 . .| 1 
++-+-+-+-+-+-+-+-+-+
+
+---------------------------
+
++-+-+-+-+-+-+-+-+-+   
+|2 . .|1 . .|. . .|   
+|1 . .|. . .|2 . .|   
+|. . .|2 . .|1 . .|   
++-+-+-+-+-+-+-+-+-+
+|. 1 2|. . .|. . .|   
+|. . .|. 1 2|. . .|   
+|. . .|. . .|. 1 2|   
++-+-+-+-+-+-+-+-+-+
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
++-+-+-+-+-+-+-+-+-+
+
++-+-+-+-+-+-+-+-+-+   
+|2 . .|1 . .|. . .|   
+|1 . .|. . .|2 . .|   
+|. . .|2 . .|1 . .|   
++-+-+-+-+-+-+-+-+-+
+|. 1 2|. . .|. . .|   
+|. . .|. 1 .|. 2 .|   
+|. . .|. . 2|. . 1|   
++-+-+-+-+-+-+-+-+-+
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
+|. . .|. . .|. . .|   
++-+-+-+-+-+-+-+-+-+
+
+usw.
+vielleicht ist das eine Art zu beweisen bei wiederholenden Zahlen
+######################
+
+gegenbeweis x-Sudoku?
+
+Lemma4) Alle Konfiguration mit 4 VOrgaben mit 4 verschiedenen Ziffern kommen in allen volständigen Sudokus vor.
+Beweise:
+Beginnen wir mit dem Fall, dass es  einen Block gibt, der nur eine Vorgabe enthält.
+
++---+
+|...|
+|...|
+|...|
++---+
+
+Umgebung (1)
++---+
+|...| < 1, 2, 3
+|...|
+|...|
++---+
+
+Umgebung (2)
++---+
+|...| < 1, 2
+|...| < 3
+|...|
++---+
+
+Umgebung (3)
++---+
+|...| < 1
+|...| < 2
+|...| < 3
++---+
+
+Umgebung (4)
+ 3
+ v
++---+
+|...| < 1, 2
+|...|
+|...|
++---+
+
+Umgebung (5)
+ 3
+ v
++---+
+|...| < 1
+|...| < 2
+|...|
++---+
+
+Ausgangskonfiguration (1.1)
+
++---+
+|4..| < 1, 2, 3
+|...|
+|...|
++---+
+
+Ausgangskonfiguration (1.2)
++---+
+|...| < 1, 2, 3
+|4..|
+|...|
++---+
+
+von (1) auf 1.1
+in Zeile 1 sind alle Elemente von 1,2,3 verschieden, wähle eine davon und nenne es 4
+
+von 1 auf 1.2
+eines der Elemente der zweiten und dritten Zeile ist ungleich 1,2,3. Wähle eines davon und permuteire Zeilen 2 und drei, Spalten 1,2,3
+
+
+Umgebung (2)
++---+
+|...| < 1, 2
+|...| < 3
+|...|
++---+
+
+auf
+
+Ausgangskonfiguration (2.1)
++---+
+|4..| < 1, 2
+|...| < 3
+|...|
++---+
+
+Ausgangskonfiguration (2.2)
++---+
+|...| < 1, 2
+|4..| < 3
+|...|
++---+
+
+Ausgangskonfiguration (2.3)
++---+
+|...| < 1, 2
+|...| < 3
+|4..|
++---+
+
+Problematisch ist nur (2.3), wenn
+
++---+
+|...| < 1, 2
+|...| < 3
+|123|
++---+
+dann
+
++---+---+
+|...|...| < 1,2
+|3..|...|
+|...|123|
++---+---+
+
+die letzte Zeile der Linken Box enthält 4
+
+Die folgende Konfiguration ist wiederum ein Problem:
+
+
++---+---+---+
+|123|...|...| < 1,2 (linke Box)
+|...|123|...| < 3 (mittlere Box=
+|...|...|123|
++---+---+---+

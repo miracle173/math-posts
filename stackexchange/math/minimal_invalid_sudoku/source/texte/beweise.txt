@@ -1,0 +1,392 @@
+  
+  Induktive Erweiterung: Man muss zeigen, dass man im Block, wo man die n-te Vorgabe zur Stellung mit n-1 Vorgaben hinzufügt, von jeder Position  in die linke obere Ecke kommt und von der linken oberen Ecke, in jede Position. Ist das nicht das gleiche? Nein, siehe zum Beispiel
+  
+  
+  #=====#         
+  $ | | $ < 1,2,3 
+  $-+-+-$         
+  $ | | $         
+  $-+-+-$         
+  $ | | $         
+  #=====#         
+                  
+  Hier kann ich von jeder Position in die linke obere Ecke durch wechsel der Symbolnamen. Ich aber nicht auf die fleiche  Weise von der linken oberen Ecke in jede Position. Wenn in der untersten Zeile die Ziffern 1,2,3, in beliebiger Reihenfolge stehen, kann ich nicht durch Namenswechsel zurück. Da muss ich erst die untere und die mittlere Zeile tauschen, dann kann ich durch Namenswechsel in die untere Zeile.
+  
+  
+  
+
+  
+  
+  Sudokus mit 2 Gegebenen
+  
+  1. Verteilt auf 2 Blöcke
+  => pro Block genau  eine Ziffer. Diese Ziffern sind, möglicherweise nach Symbolpermutation, die Zifern 1 und 2. Sei nun ein beliebiges, vollständiges korrektes Sudoku gegeben.  Betrachten wir eine dieser Blöcke. Dann enthält der die Ziffer 1. Nach zulässigem verschieben der Blöcke und Felder steht diese 1 genau an der Position in der vorgegebenen Konfiguration. Wählen wir nun den Block, indem die Ziffer 2 der Konfiguration stehen soll. Das Ganze kann nun so aussehen:
+  
+     1.1             1.2                1.3
+  
+    #=====#         #=====#           #=====#
+    $     $         $  2  $  <-1      $     $  <-1
+    $     $         $-+-+-$           $-+-+-$
+    $  2  $    %    $     $       %   $     $
+    $     $         $     $           $  2  $
+    $     $         $     $           $     $
+    #=====#         #=====#           #=====#
+            -
+           |1
+    
+    
+
+Wenn der 1 nicht auf die zweite oder dritte Reihe einwirkt, dann können wir durch vertauschen der Zeilen erreichen,
+dass er in die erste Zeile kommt, sodass wir 1.2 oder 1.3 erreichen. Wirkt die 1 nicht auf eine Zeile des 2-Blocks, sondern auf eine Spalte, dann kann durch Spiegelung um die Diagonale erreicht werden, dass er nun, nachdem gegebnfalls wieder die Zeilen vertauscht wurden, 1.2 oder 1.3 erreicht wird. Wir wollen nun Zeigen, dass wir, egal wo die 2 steht, wir durch zulässige Transformationen auf das vorgegebene vollständige Sudoku erreichen können, das ein Sudoku entsteht, wo die 1 und die 2 an der Stelle stehen, die in der Konfiguration vorgegeben ist. Dazu reicht es zu zeigen, das es möglich ist, im Sudoku, wo die 1 und der 2-Block schon an der richtigen Stelle stehen, eine 2 an die rechte obere Ecke des 2-Blocks zu bringen, wobei die vorgegebenen Ziffern außerhalb des 2-Blocks, also in diesem Fall die 1, dan ihrer Stelle bleibt. Wenn das möglich ist, kann natürlich auch durch die Umkehrung von Transformationen die 2 von der rechten oberen Ecke des 2-Blocks an jede beliebige Stelle des 2-Blocks und damit von jeder Stelle des 2-Blocks auf jede andere Stelle des 2-Blocks gebracht werden. Die rechte obere Ecke ist dabei beliebig gewählt, man könnte auch eien andere Position auswählen.
+
+Im Falle ist das z.B. durch Zeilen und Spaltentransformationen im Band und im Stapel der 2-Blockes möglich. Die vorgegebnen 1 ist davon nicht betroffen. Im Falle 1.2 kann man auch die 2 ganz nach links bringen, In der obersten Zeile ist sie ja schon. Im Fall 1.3 kann man nur durch Zeilen und Spaltentauch im 2-Block das nicht erreichen, da man ja die vorgegenen 1 bei einem Zeilentausch mitbewegt. Man hat  folgende Moglichkeiten:
+
+     1.3.1              1.3.2
+    #=====#            #=====#
+    $2|   $  <- 1      $x| 2 $  <- 1
+    $-+-+-$        %   $-+-+-$
+    $     $            $     $
+    $     $            $     $
+    $     $            $     $
+    #=====#            #=====#
+    
+Im Fall 1.3.1 sind wir fertig. Im Fall 1.3.2 ist x weder 1 noch 2. Wir vertauschen die Symbole 2 und x, dabei bleibt das Symbol 1 unverändert und wir erhalten wie gewünscht.
+
+
+     1.3.2.1
+    #=====#
+    $2| x $  <- 1
+    $-+-+-$
+    $     $
+    $     $
+    $     $
+    #=====#
+    
+ Eine andere Möglichkeit wäre bei 1.3 folgende Überlegung. Surch Spaltentausch können wir 1.3 auf 1.3.3 bringen: die 2 steht im 2-Block links unten. In dem Block, wo die  vorgegeben 1 ist, steht eine x in der selben Zeile wie 2, dabei kann x weder 1 noch 2 sein. Nun vertauschen wir die Zeilen und erhalten  1.3.3.2.
+ 
+    1.3.3.1               1.3.3.2
+    #=====#    ===        #=====#
+    $     $    |1|        $2|   $  <- x
+    $-+-+-$    +-+    %   $-+-+-$
+    $     $    | |        $     $
+    $-+-+-$    +-+        $     $
+    $2| | $    |x|        $     $
+    #=====#    ===        #=====#
+                    
+Jetzt vertauche wir die Symbole x un 1, 2 bleibt dabei unveränder und wir erhalten das Gewünschte.
+
+## Drei Vorgaben
+
+Wenn es mehr als einen Block gibt, die Vorgaben enthalten, enthält 
+
+    2.1               2.2                2.3             2.4
+   #=====#           #=====#            #=====#         #=====# 
+   $  x  $ <-1,2     $  x  $ <-1        $  x  $ <-1     $x| | $  <-1
+   $-+-+-$           $-+-+-$       %    $-+-+-$         $-+-+-$ 
+   $     $        %  $     $ <-2        $     $     %   $ | | $ 
+   $     $           $-+-+-$            $-+-+-$         $-+-+-$ 
+   $     $           $     $            $     $         $ | | $ 
+   #=====#           #=====#            #=====#         #=====# 
+                                                -        ^
+                                               |2        2
+    In allen diesen Fällen gibt es in der ersten Zeile mindestens ein x !=1,2, da die erste Zeile drei Eleemente enthält.
+    Durch Umbenennung von x und 3 kann 3 in die erste Zeile gebracht werden. Durch  Spaltenpermutation kommt dann x in die linke obere Ecke. Im Falle 2.4 muss nicht mehr permutiert werden, da x schon an der richtigen Stelle stehen muss.
+    
+    Hat man nuhr zwei verschiedene Symbole, also, nach Umbenennung die Vorgaben 1, 1 und 2, dann wählt man den Block mit der 2. Wenn in der linken oberen Ecke schon 2 steht, sind wir fertig, wenn eine Ziffer x=1,2 steht, vertauschen wir die Namen der Ziffern x und 2, danach steht 2 an der linken oberen Ecke. Wenn in der Linken oberen Ecke 1 steht, dann vertauschen wir die obere Zeile , in der nicht die beschränkende 1 stehen kann mit einer anderen Zeile, in der nicht die beschränkende 1 steht. Eine solche muss es ja nocjh in diesem Block geben. Danach sind wir beim vorigen Fall. Steht die 2 in einem Block, indem auch eine 1 steht, können wir sie sofort an die gewünschte Position durch Umbenennung bringen. Auf die Position, wo die 1 steht, soll sie ja nicht gebracht werden.
+    
+    
+    Der Fall das es nur einen Block gibt, ist durch Lemma 1 abgedeckt, der Fall das alle 3 Ziffern gleich sind, und daher drei Blöcke sind, durch Lemma 2.
+    
+    Vier Vorgaben
+    
+    Vier Ziffernwerte und vier Blöcke
+    
+    
+    #=====#               #=====#                #=====#           
+    $ | | $ < 1,2,3       $ | | $ < 1,2          $ | | $ < 1       
+    $-+-+-$               $-+-+-$                $-+-+-$           
+    $ | | $          %    $ | | $ < 3        %   $ | | $ < 2    %  
+    $-+-+-$               $-+-+-$                $-+-+-$           
+    $ | | $               $ | | $                $ | | $ < 3       
+    #=====#               #=====#                #=====#           
+                                                                
+       %                     %                      %
+                                                                   
+    #=====#              #=====#                #=====# 
+    $ | | $ < 1,2        $ | | $ < 1            $ | | $ < 1,2
+    $-+-+-$              $-+-+-$                $-+-+-$ 
+    $ | | $       %      $ | | $ < 2       %    $ | | $ 
+    $-+-+-$              $-+-+-$                $-+-+-$ 
+    $ | | $              $ | | $                $ | | $ 
+    #=====#              #=====#                #=====# 
+     ^                    ^                             -
+     3                    3                            |3
+     
+       %                     %                      %
+
+    #=====#             #=====#                #=====#    
+    $ | | $ < 1         $ | | $ < 1            $ | | $ < 1
+    $-+-+-$             $-+-+-$                $-+-+-$    
+    $ | | $ < 2  %      $ | | $             %  $ | | $    
+    $-+-+-$             $-+-+-$                $-+-+-$    
+    $ | | $             $ | | $                $ | | $    
+    #=====#             #=====#                #=====#    
+            -            ^      -                      -  
+           |3            2     |3                     |2,3
+    
+
+       %                     %                      %
+
+    #=====#    
+    $ | | $ 
+    $-+-+-$    
+    $ | | $    
+    $-+-+-$    
+    $ | | $    
+    #=====#    
+            -  
+           |1,2,3
+
+
+    #=====#=====#=====#
+    $1|2|3$1|2|3$1|2|3$
+    $---+-$-+-+-$-+-+-$
+    $4|5|6$4|5|6$4|5|6$
+    $-+-+-$-+-+-$-+-+-$
+    $7|8|9$7|8|9$7|8|9$
+    #=====#=====#=====#
+    $1|2|3$1|2|3$1|2|3$
+    $-+-+-$-+-+-$-+-+-$
+    $4|5|6$4|5|6$4|5|6$
+    $-+-+-$-+-+-$-+-+-$
+    $7|8|9$7|8|9$7|8|9$
+    #=====#=====#=====#
+    $1|2|3$1|2|3$1|2|3$
+    $-+-+-$-+-+-$-+-+-$
+    $4|5|6$4|5|6$4|5|6$
+    $-+-+-$-+-+-$-+-+-$
+    $7|8|9$7|8|9$7|8|9$
+    #=====#=====#=====#
+
+
+    #=====#=====#=====#
+    $1|2|3$     $     $
+    $-+-+-$-+-+-$-+-+-$
+    $4|5|6$ 123 $     $
+    $ | | $-+-+-$-+-+-$
+    $ | | $     $ 123 $
+    #=====#=====#=====#
+    $2|1| $           $
+    $3| |-$           $
+    $ | | $           $
+    $ | | $           $
+    $ | | $           $
+    #=====#=====#=====#
+    $ |3|1$           $
+    $ | |2$           $
+    $ | | $           $ 
+    $ | | $           $
+    $ | | $           $
+    #=====#=====#=====#
+       
+       
+       
+    #=====#=====#=====#
+    $1-2.3$1.2.3$1.2.3$
+    $.....$.....$.....$
+    $4.5.6$4.5.6$4.5.6$
+    $.....$.....$.....$
+    $7.8.9$7.8.9$7.8.9$
+    #=====#=====#=====#
+    $1.2.3$1.2.3$1.2.3$
+    $.....$.....$.....$
+    $4.5.6$4.5.6$4.5.6$
+    $.....$.....$.....$
+    $7.8.9$7.8.9$7.8.9$
+    #=====#=====#=====#
+    $1.2.3$1.2.3$1.2.3$
+    $.....$.....$.....$
+    $4.5.6$4.5.6$4.5.6$
+    $.....$.....$.....$
+    $7.8.9$7.8.9$7.8.9$
+    #=====#=====#=====#
+
+    #################################################
+
+
+    #=====#
+    $ | | $  <- 1,2
+    $-+-+-$
+    $ | | $  <- 3
+    $-+-+-$
+    $4| | $  
+    #=====#
+
+    #=====#
+    $     $  <- 1,2
+    $     $
+    $  4  $  <- 3
+    $     $
+    $     $  
+    #=====#
+
+
+    #=====#
+    $  A  $  <- 1,2
+    $-----$
+    $  B  $  <- 3
+    $-----$
+    $  C  $  
+    #=====#
+
+    Fall 1
+    4 ist in A: in A können 1 und 2 nicht sein, höchstens 3, dann gibt es also mindestens 2 Ziffern, die nicht 1,2,3 sind. Wir wählen eine Davon, diese bennen wir in 4 um. Durch Spaltenpermutation kann sie in jede beliebige Spalte dZeile A gebracht werden.
+    Ähnliche Aegumentation wenn 4 in B is. Mindestens eines der Ziffern diesre Zeile ist nicht gleich 1,2,3. Dieses bennen wir in 4 um.
+
+    Letzter Fall: 3 ist in C. Wenn nicht alle Ziffern diesrer Zeil 1,2 3 sind, dann sind wr fertig. Wenn die Zeile alle Ziffern 1,2,3 enthält, dann haben wir folgende Situation:
+
+
+    #=====#=====#=====#
+    $4|5|6$  D  $ | | $   <- 1,2
+    $-+-+-$-----$---+-$
+    $7|8|9$  E  $ | | $   <- 3
+    $-+-+-$-+-+-$-+-+-$
+    $1|2|3$ | | $ | | $   
+    #=====#=====#=====#
+
+    1,2,3 müsseb auf D und E verteilt sein. Angenommen in einem Rechteck und im anderen eine Ziffer. Nach umbenenne sind dass 1 und 2. Wir habend ann also
+
+    #=====#=====#=====#
+    $4|5|6$  3  $ 12  $
+    $-+-+-$-----$-----$
+    $7|8|9$ 12  $  3  $   1.1
+    $-+-+-$-+-+-$-+-+-$
+    $1|2|3$ | | $ | | $
+    #=====#=====#=====#
+
+    Hier ist x!= 1,2,3. In F  muss 1,2 und eine Zahl y != 1,2,3 sei. Dann wäre die Konfiguration 
+
+    #=====#=====#=====#
+    $ | | $ <-12$     $
+    $-+-+-$-----$-----$
+    $ | | $     $<-3  $
+    $-+-+-$-----$-----$
+    $4| | $     $     $
+    #=====#=====#=====#
+
+    gewesen. Aus 1.1 können wir aberdie gleichertige Konfiguration
+
+    #=====#=====#=====#
+    $     $  F  $     $
+    $-----$-----$-----$
+    $     $     $<-3  $   
+    $-----$-----$-----$
+    $ 12->|     |     $
+    #=====#=====#=====#
+
+    Im Feld F steht 3 und nicht 1,2, also zwei Zahlen, die nicht 1,2,3 sind. Eine dieser Zahlen können wir auf 4 umbenennen.
+
+    Im Falle von
+
+    #=====#=====#=====#
+    $4|5|6$ 13  $ 2   $
+    $-+-+-$-----$-----$
+    $7|8|9$ 2   $ 13  $   
+    $-+-+-$-+-+-$-+-+-$
+    $1|2|3$ | | $ | | $
+    #=====#=====#=====#
+
+    erreichen wir durch umbennen von 2 und 3 die vorige Stellung.
+
+    Es wäre aber auch möglich, dass 1,2,3 in der selben Zeile eines Blocks sthen
+
+
+    #=====#=====#=====#
+    $4|5|6$     $ 123 $
+    $-+-+-$-----$-----$
+    $7|8|9$ 123 $     $
+    $-+-+-$-+-+-$-+-+-$
+    $1|2|3$ | | $ | | $
+    #=====#=====#=====#
+
+    daraus würde folgen
+
+    #=====#=====#=====#
+    $4|5|6$ 789 $ 123 $
+    $-+-+-$-+-+-$-----$
+    $7|8|9$ 123 $ 456 $
+    $-+-+-$-+-+-$-+-+-$
+    $1|2|3$ 456 $ 789 $
+    #=====#=====#=====#
+
+    also
+
+    #=====#=====#=====#
+    $     $ 7   $     $
+    $-+-+-$-+-+-$-----$
+    $     $     $ 4   $
+    $-+-+-$-+-+-$-+-+-$
+    $1|2|3$     $     $
+    #=====#=====#=====#
+
+    und wenn wir 7 und 3 vertauchen, das gewünschte
+
+    Letztlich wäre noch die Konfiguration
+
+    #=====#=====#=====#
+    $     $ 1   $ 2   $
+    $-+-+-$-+-+-$-----$
+    $     $     $ 3   $
+    $-+-+-$-+-+-$-+-+-$
+    $     $     $     $
+    #=====#=====#=====#
+
+    möglich. Daraus würde hoffentlich 
+
+    #=====#=====#=====#
+    $     $ 13  $ 2   $
+    $-+-+-$-+-+-$-----$
+    $     $ 13  $ 3   $
+    $-+-+-$-+-+-$-+-+-$
+    $ 123 $     $     $
+    #=====#=====#=====#
+  
+  
+  
+  ##############################################
+  
+  
+    ... ... ... 
+    ... ... ... 
+    ... ... ... 
+            
+    ... ... ...  
+    ... ... ... 
+    ... ... ... 
+            
+    ... ... ... 
+    ... ... ... 
+    ... ... ...   
+    
+                                       Fall1:
+    ... <1,2     ... <1,2   456 <1,2   456 <1,2 123 ...       456 {789} {123}    unklar
+    ... <3       ... <3     789 <3   % 789 <3   ... ... ==>   789 {123} {456}
+    ...      %   123     %  123        123      ... ...       123 {456} {789}
+       
+    Fall2               erzwungen       Blocktausch   x,y,z!= 1,2,3      umbennen 4 auf 4, fertig        
+    456 <1,2  {12.}  ...      456 {12.} {3..}     {3..} {12.} 456        ...
+    789 <3    {3..}  ...  ==> 789 {3..} {12.} ==> {12.} {3..} 789  ==>   ...
+    123        ...   ...      123  ...   xyz       xyz   ...  123        x.. 
+    
+    Fall 3                     erzwungen, wie Fall2
+    456 <1,2  {1..} {2..}      456 <1,2  {1..} {2..}
+    789 <3    {3..}  ...   =>  789 <3    {32.}  ...
+    123        ...   ...       123        ...   ...
+    
+    
+    
+    ... <1,2    12. ...     12. ...    12. ...     1.. 2..    1.. 2..
+    ... <3   %  3.. ...  %  ..3 ...  % ... 3..  %  3.. ... %  .3. ...
+    ...         ... ...     ... ...    ... ...     ... ...    ... ...
+    
+    

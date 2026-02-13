@@ -1,0 +1,2 @@
+Your answer does not solve the question. OP showed in the picture that one can put 5 digits on an empty grid so that there is a block (the 3*3 square in the upper left corner) that cannot be filled with the digits 1 to 9 without breaking the Sudoku rules (no duplicates in a row, column or subsquare). You tried to show that there is not such a block if one places only 4 digits in an empty sudoku. But that is not sufficient. One has to show that after putting 4 digits on an empty grid the remaining 77 cells can be filled with the digits without breaking the Sudoku rules. 
+
