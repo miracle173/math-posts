@@ -1,0 +1,94 @@
+from typing import List, Tuple
+
+Reflection = boolean
+Permutation = (int, int, int)
+RowPermutation = Permutation
+ColPermuation = Permutation
+
+LocalTransform = Tuple(int, Permutation)
+GlobalTransform = Tuple(Reflection, RowPermutation, ColPermuation)
+
+Row = Tuple[int, int, int]
+Block = Tuple[ Row, Row, Row]
+Band = Tuple [ Block, Block, Block]
+Sudoku = Tuple [ Band, Band, Band]
+
+modul 1 per iteration  9.25e-03 iterations    10 run time    0.09 items    15
+modul 1 per iteration  8.60e-03 iterations   100 run time    0.86 items    15
+modul 1 per iteration  8.49e-03 iterations  1000 run time    8.49 items    15
+
+modul 2 per iteration  4.95e-03 iterations    10 run time    0.05 items    15
+modul 2 per iteration  4.55e-03 iterations   100 run time    0.46 items    15
+modul 2 per iteration  4.59e-03 iterations  1000 run time    4.59 items    15
+
+modul 3 per iteration  5.10e-03 iterations    10 run time    0.05 items    15
+modul 3 per iteration  4.28e-03 iterations   100 run time    0.43 items    15
+modul 3 per iteration  4.22e-03 iterations  1000 run time    4.22 items    15
+
+
+    (((r==i)  or    ((r<i) and not myRowIsUsed)) 
+    and ((c==j) or    ((myMinFreeCol==c) and (c<j))))
+    
+    
+    matrix[i][j]>=matrix[r][c]
+1.)    
+    xxxxxx...
+    xxxxxx...
+    x....?
+    
+    myRowIsUsed and c<minfreeC:
+    (r==i) and (c==j) 
+    
+
+2.)    
+    xxxxxx...
+    xxxxxx...
+    x.....?
+
+    myRowIsUsed and c>=minfreeC:
+    ((r==i) and (c==j)) 
+    or
+    j>= minfreeC and i == r (d.h. i>c)
+    
+
+3.)
+    xxxxxx...
+    xxxxxx...
+    .....?
+
+    !myRowIsUsed and c<minfreeC:
+    (r==i) and (c==j)
+    or
+    i>r and c==j
+    
+ 4.)   
+    xxxxxx...
+    xxxxxx...
+    ......?
+    
+    !myRowIsUsed and c>=minfreeC
+    
+    (r==i) and (c==j)
+    or
+    j>=minfreeC and i>=r
+
+
+    (((myRowIsUsed and c<myMinFreeCol) and  (r==i) and (c==j) )
+    or 
+    ((myRowIsUsed and c>=myMinFreeCol) and ( ((r==i) and (c==j))  or (j>= myMinFreeCol and i == r) ))
+    or
+    ((not myRowIsUsed and c<myMinFreeCol) and ((  (r==i) and (c==j) ) or  (i>r and c==j)))
+    or
+    ((not myRowIsUsed and c>=myMinFreeCol) and ( ((r==i) and (c==j)) or (j>=myMinFreeCol and i>=r) )))
+    =
+    (((r=i)  or    ((r<i) and not myRowIsUsed)) 
+    and ((c=j) or    ((myMinFreeCol=c) and (c<j))))
+    
+    
+t=1
+product(range(t),permutation(range(t,3)))
+
+
+
+
+
