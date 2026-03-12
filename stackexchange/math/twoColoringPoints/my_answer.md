@@ -79,3 +79,22 @@ We can assume that a sequence always starts with `0`. Otherwise we will swap the
 On position $9$ the rules require a `0` but in this case the colors at position $1$,$5$ and $9$ are all `0`, so the sequences cannot be extended further.
 
 
+foreach $0$-$1$-sequence $color$ of length $n$:  
+&nbsp;&nbsp;&nbsp;&nbsp;
+    foreach subset$\{i,j\}$ of $\{0,\dots,n-1\}$:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        if $(i+j) \bmod 2 = 0$:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+$m:=\frac{i+j}2$  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            if $color_i=color_j$ and $color_j=coloer_m$:  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                a triple with the requested property is found for this color sequence  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+so go to labe l1 and try next color sequence of this length  
+&nbsp;&nbsp;&nbsp;&nbsp;
+if no triple with the requested property was found for this color sequence  
+&nbsp;&nbsp;&nbsp;&nbsp;
+then output $n$ and an appropriate message and exit program
+
