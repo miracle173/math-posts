@@ -1,5 +1,47 @@
 [This link](https://www.youtube.com/watch?v=4TnJhQPvZB0) points to a youtube video that illustrates the [proof of @quasi](https://math.stackexchange.com/a/4201256/11206). And this link points to a [cut-the-now article](https://www.cut-the-knot.org/proofs/2ColorsOnLine.shtml) about this topic with references to related problems.
 
+But here is another way to prove the statement. More precisely, we prove the more specifific statement:
+# Statement
+> If there are 9 equidistant points on a line colored with two colors for at least three of these points holds:
+>
+> all three points have the same color and one point is the midpoint of the two other points.
+
+or equivalently:
+#Statement:
+If there is a sequence $(c_0, c_1, \dots, ,c_8)$, where $c_i\in\{0,1\}, \forall i: i\in\{0,1,\dots,8\}$, then there exist three indices $i,m,j \in\{0,1,\dots,8\},i<m<j$ such that , $c_i=c_m=c_j$.
+
+
+$\textbf{for } n=3,4,5,\dots:$  
+$\hspace{10pt}\text{check if for all colorings of the points }0,\dots,n-1 $  
+$\hspace{10pt}\text{there is at least one triple }i,j,m \text{ in } \{0,...,n-1\}$  
+$\hspace{10pt} \text{such that } m=(i+j)/2$  
+$\hspace{10pt} \text{and } color[i]=color[j]=color[m].$  
+$\hspace{20pt}\text{if so then we are done. Output }n\text{  and exit program}$  
+$\hspace{20pt}\text{if not, output the color sequence that}$  
+$\hspace{30pt}\text{does not have such a triple and try next }n$  
+
+A more detailed description:  
+
+$n\leftarrow 2$  
+$\textbf{repeat}:$  
+$\hspace{10pt}n\leftarrow n+1$  
+$\hspace{10pt}all\_sequences\leftarrow \textbf{true}$   
+$\hspace{10pt}\textbf{for each } \text{0-1-sequence}\; color \; \text{of length}\; n$:  
+$\hspace{20pt}found\_triple?\textbf{false}$  
+$\hspace{20pt}\textbf{for each}\;\text{subset}\; \{i,j\} \; \text{of} \; \{0,\dots,n-1\}$:  
+$\hspace{30pt}\textbf{if}\; (i+j) \bmod 2 = 0$:  
+$\hspace{40pt}m\leftarrow \frac{i+j}2$  
+$\hspace{40pt}\textbf{if} \;(color_i=color_j)  \;\textbf {and }\; (color_j=color_m)$:  
+$\hspace{50pt}/\!*\textit{a triple was found}*\!/$  
+$\hspace{50pt}found\_triple\leftarrow \textbf{true} $  
+$\hspace{40pt}\textbf{endif}$  
+$\hspace{30pt}\textbf{endif}$  
+$\hspace{20pt}\textbf{endfor} $  
+$\hspace{20pt}all\_sequences\leftarrow (all\_sequences\textbf{ and }found\_triple)$  
+$\hspace{10pt}\textbf{endfor} $  
+$\hspace{0pt}\textbf{until }all\_sequences$  
+$\textbf{write }\text{"for each sequence of length "},n,\text{"a triple exists"}$    
+
 The following simple Python program proves the more specific statement:
 # Statement
 > If there are 9 equidistant points on a line colored with two colors for at least three of these points holds:
