@@ -1,6 +1,6 @@
 [This link](https://www.youtube.com/watch?v=4TnJhQPvZB0) points to a youtube video that illustrates the [proof of @quasi](https://math.stackexchange.com/a/4201256/11206). And this link points to a [cut-the-now article](https://www.cut-the-knot.org/proofs/2ColorsOnLine.shtml) about this topic with references to related problems.
 
-But here is another way to prove the statement. We prove the more specifific statement:
+But here is a differenct way to prove the statement. We prove the more specifific statement:
 **Statement 1:**
 > If there are 9 equidistant points on a line colored with two colors for at least three of these points holds:
 >
