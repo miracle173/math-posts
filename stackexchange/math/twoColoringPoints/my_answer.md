@@ -8,9 +8,12 @@ But here is another way to prove the statement. We prove the more specifific sta
 
 or equivalently:
 
-**Statement 2:**
-If there is a sequence $(c_0, c_1, \dots, ,c_8)$, where $c_i\in\{0,1\}, \forall i: i\in\{0,1,\dots,8\}$, then there exist three indices $i,m,j \in\{0,1,\dots,8\},i<m<j$ such that , $c_i=c_m=c_j$.
+**Statement 1:**
+If there is a sequence $(c_0, c_1, c_2, \dots)$, where $c_i\in\{0,1\}, \forall  i \in \mathbb{N_0}$, then there exist three indices $i,m,j \in \mathbb{N_0}$ such that  $i<j$, $m=(i+j)/2$ and $c_i=c_m=c_j$.
 
+From Statement 1 the original statement follows. If we have a coloring of the real line, we get a coloring of the points $0,1,2,\dots$ of the real line and from Statement 1 follows that three points have the requested property.
+
+We can check all sequences of a given length of they have the property
 
 $\textbf{for } n=3,4,5,\dots:$  
 $\hspace{10pt}\text{check if for all colorings of the points }0,\dots,n-1 $  
@@ -21,7 +24,7 @@ $\hspace{20pt}\text{if so then we are done. Output }n\text{  and exit program}$
 $\hspace{20pt}\text{if not, output the color sequence that}$  
 $\hspace{30pt}\text{does not have such a triple and try next }n$  
 
-A more detailed description:  
+A more detailed description of the algorithm:
 
 $n\leftarrow 2$  
 $\textbf{repeat}:$  
@@ -43,7 +46,7 @@ $\hspace{10pt}\textbf{endfor} $
 $\hspace{0pt}\textbf{until }all\_sequences$  
 $\textbf{write }\text{"for each sequence of length "},n,\text{"a triple exists"}$    
 
-The following simple Python program implements the algorithm
+The following simple Python program implements the algorithm. So we can start it an lean back and wait if if will finish.
 
 **Program:**  
 
@@ -83,22 +86,13 @@ For each number of points it shows one coloring with the colors 0 and 1 were the
     8 (0, 0, 1, 1, 0, 0, 1, 1)
     triples always found for number of points = 9
 
-If the number of points is n the program has to check $2^n \frac 1 2 \binom n  2 \approx 2^{n-2} n^2$ triples.
-By changing the line 
+This result tells us that each 0-1-sequence of length $9$ has the requested property and therefore each sequence of a lenth larger than 9.
 
-    for coloring in itertools.product([0,1], repeat=numberOfPoints):
-    
-to
+so we have proven that on the real line coloured with two colours always three points with the requested property exist.
 
-    for coloring in itertools.product([0,1,2], repeat=numberOfPoints):
-    
-we could check if there exists such a triple if we use three different colors. Now the runtime for a given n is $\approx 3^{n} n^2 / 4$. I ran this modified program but stopped it after a while after it outputs the following line
+Statement 1  can easily be proved without using a program:
 
-    20 (0, 0, 1, 0, 0, 1, 1, 2, 2, 0, 0, 1, 0, 0, 1, 1, 2, 2, 1, 2)
-
-The above statement for two colors can easily be proved without using a program:
-
-**Proof**  
+**Proof of Statement 1**  
 
 We can assume that a sequence always starts with `0`. Otherwise we will swap the colors. There are two possible beginnings: `001` and `011` and then the following colors are uniquely determined: after `00` and `01`can only follow `1`, after `10` and `11` can only follow `0`. So there are the following sequences starting with `0`:
     
@@ -109,15 +103,3 @@ We can assume that a sequence always starts with `0`. Otherwise we will swap the
     
 On position $9$ the rules require a `0` but in this case the colors at position $1$,$5$ and $9$ are all `0`, so the sequences cannot be extended further.
 
-
-**Python Info: Combinatoric iterators:**
-
-|Iterator | Arguments | Results|
-|---------|-----------|--------|
-|product()|p, q, … [repeat=1] |cartesian product, equivalent to a nested for-loop|
-|combinations()|p, r|r-length tuples, in sorted order, no repeated element|
-
-|Examples| Results|
-|--------|--------|
-|product('ABCD', repeat=2)|AA AB AC AD BA BB BC BD CA CB CC CD DA DB DC DD|
-|combinations('ABCD', 2)|AB AC AD BC BD CD|
